@@ -20,9 +20,6 @@ end
 function AdonisEngine.new(title, iconId)
     local self = setmetatable({}, AdonisEngine)
     
-    title = tostring(title or "Adonis Library")
-    iconId = tonumber(iconId) or 7072716642
-    
     self.gui = create("ScreenGui", {
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
@@ -44,7 +41,7 @@ function AdonisEngine.new(title, iconId)
         CornerRadius = UDim.new(0.08, 0)
     })
     
-    self:CreateTopBar(title, iconId)
+    self:CreateTopBar(title or "Adonis Except", tonumber(iconId) or 110915885697382)
     self:CreateContentArea()
     self:SetupAutoDestroy()
     
@@ -97,7 +94,7 @@ function AdonisEngine:CreateTopBar(title, iconId)
         Size = UDim2.new(0.8, 0, 1, 0),
         Position = UDim2.new(0.08, 0, 0, 0),
         BackgroundTransparency = 1,
-        Text = string.upper(title),
+        Text = string.upper(tostring(title)),
         TextColor3 = theme.text,
         TextSize = 18,
         Font = Enum.Font.GothamSemibold,
