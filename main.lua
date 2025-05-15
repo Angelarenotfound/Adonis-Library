@@ -87,8 +87,8 @@ function AdonisEngine:CreateTopBar(title, iconId)
     })
 
     create("UICorner", {
-        CornerRadius = UDim.new(1, 0),
-        Parent = self.icon
+        Parent = self.icon,
+        CornerRadius = UDim.new(1, 0)
     })
 
     self.title = create("TextLabel", {
@@ -129,8 +129,7 @@ function AdonisEngine:ShowConfirmationModal()
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         BackgroundColor3 = theme.surface,
-        BackgroundTransparency = 0,
-        ZIndex = 10
+        BackgroundTransparency = 0
     })
 
     create("UICorner", {
@@ -153,16 +152,14 @@ function AdonisEngine:ShowConfirmationModal()
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.GothamMedium,
-        TextWrapped = true,
-        ZIndex = 11
+        TextWrapped = true
     })
 
     local buttonContainer = create("Frame", {
         Parent = self.modal,
         Size = UDim2.new(1, -20, 0.3, 0),
         Position = UDim2.new(0, 10, 0.65, 0),
-        BackgroundTransparency = 1,
-        ZIndex = 11
+        BackgroundTransparency = 1
     })
 
     local acceptButton = create("TextButton", {
@@ -173,14 +170,12 @@ function AdonisEngine:ShowConfirmationModal()
         Text = "ACCEPT",
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        ZIndex = 12
+        Font = Enum.Font.GothamBold
     })
 
     create("UICorner", {
         Parent = acceptButton,
-        CornerRadius = UDim.new(0.08, 0),
-        ZIndex = 12
+        CornerRadius = UDim.new(0.08, 0)
     })
 
     local declineButton = create("TextButton", {
@@ -191,14 +186,12 @@ function AdonisEngine:ShowConfirmationModal()
         Text = "DECLINE",
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        ZIndex = 12
+        Font = Enum.Font.GothamBold
     })
 
     create("UICorner", {
         Parent = declineButton,
-        CornerRadius = UDim.new(0.08, 0),
-        ZIndex = 12
+        CornerRadius = UDim.new(0.08, 0)
     })
 
     acceptButton.MouseButton1Click:Connect(function()
@@ -228,8 +221,8 @@ function AdonisEngine:CreateContentArea()
     })
 
     create("UICorner", {
-        CornerRadius = UDim.new(0.06, 0),
-        Parent = self.leftPanel
+        Parent = self.leftPanel,
+        CornerRadius = UDim.new(0.06, 0)
     })
 
     self.rightPanel = create("ScrollingFrame", {
@@ -242,8 +235,8 @@ function AdonisEngine:CreateContentArea()
     })
 
     create("UICorner", {
-        CornerRadius = UDim.new(0.06, 0),
-        Parent = self.rightPanel
+        Parent = self.rightPanel,
+        CornerRadius = UDim.new(0.06, 0)
     })
 
     create("Frame", {
