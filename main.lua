@@ -1,12 +1,17 @@
 local AdonisEngine = {}
 AdonisEngine.__index = AdonisEngine
 
+local _instance = nil
+
 local theme = {
     background = Color3.fromRGB(13, 13, 18),
     surface = Color3.fromRGB(22, 22, 28),
     accent = Color3.fromRGB(110, 90, 255),
     text = Color3.fromRGB(240, 240, 240),
-    divider = Color3.fromRGB(45, 45, 55)
+    divider = Color3.fromRGB(45, 45, 55),
+    error = Color3.fromRGB(255, 85, 85),
+    success = Color3.fromRGB(85, 255, 127),
+    warning = Color3.fromRGB(255, 175, 0)
 }
 
 local function create(className, props)
@@ -17,15 +22,28 @@ local function create(className, props)
     return instance
 end
 
-function AdonisEngine.new(title, iconId)
-    local self = setmetatable({}, AdonisEngine)
+local function getInstance()
+    if not _instance then
+        _instance = setmetatable({}, AdonisEngine)
+        _instance.sections = {}
+        _instance.notifications = {}
+    end
+    return _instance
+end
+
+function AdonisEngine.Start(title, iconId)
+    local self = getInstance()
     
+    if self.gui then
+        self.gui:Destroy()
+    end
+
     self.gui = create("ScreenGui", {
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
         DisplayOrder = 999
     })
-    
+
     self.mainFrame = create("Frame", {
         Parent = self.gui,
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -35,7 +53,7 @@ function AdonisEngine.new(title, iconId)
         BackgroundTransparency = 0.03,
         ClipsDescendants = true
     })
-    
+
     create("UICorner", {
         Parent = self.mainFrame,
         CornerRadius = UDim.new(0.08, 0)
@@ -43,22 +61,23 @@ function AdonisEngine.new(title, iconId)
 
     local displayTitle = if type(title) == "string" and title ~= "" then title else "Adonis Except"
     local displayIconId = if type(iconId) == "number" then iconId else 110915885697382
-    
+
     self:CreateTopBar(displayTitle, displayIconId)
     self:CreateContentArea()
-    
+
     self.mainFrame.Position = UDim2.new(0.5, 0, -1.5, 0)
     self.mainFrame.Visible = true
-    
+
     local enterAnim = game:GetService("TweenService"):Create(
         self.mainFrame,
         TweenInfo.new(1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
         {Position = UDim2.new(0.5, 0, 0.5, 0)}
     )
     enterAnim:Play()
-    
+
     self.gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    
+    self:CreateNotificationsContainer()
+
     return self
 end
 
@@ -123,7 +142,7 @@ end
 
 function AdonisEngine:ShowConfirmationModal()
     if self.modal then return end
-    
+
     self.modal = create("Frame", {
         Parent = self.gui,
         Size = UDim2.new(0.4, 0, 0.25, 0),
@@ -218,7 +237,9 @@ function AdonisEngine:CreateContentArea()
         Size = UDim2.new(0.3, -5, 1, 0),
         BackgroundColor3 = theme.surface,
         ScrollBarThickness = 4,
-        CanvasSize = UDim2.new(0, 0, 0, 0)
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollingDirection = Enum.ScrollingDirection.Y
     })
 
     create("UICorner", {
@@ -232,7 +253,9 @@ function AdonisEngine:CreateContentArea()
         Position = UDim2.new(0.3, 5, 0, 0),
         BackgroundColor3 = theme.surface,
         ScrollBarThickness = 4,
-        CanvasSize = UDim2.new(0, 0, 0, 0)
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollingDirection = Enum.ScrollingDirection.Y
     })
 
     create("UICorner", {
@@ -247,6 +270,390 @@ function AdonisEngine:CreateContentArea()
         BackgroundColor3 = theme.divider,
         BorderSizePixel = 0
     })
+    
+    create("UIListLayout", {
+        Parent = self.leftPanel,
+        Padding = UDim.new(0, 5),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center
+    })
+    
+    create("UIPadding", {
+        Parent = self.leftPanel,
+        PaddingTop = UDim.new(0, 10),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10)
+    })
+end
+
+function AdonisEngine:CreateNotificationsContainer()
+    self.notificationsContainer = create("Frame", {
+        Parent = self.gui,
+        Size = UDim2.new(0, 300, 0, 0),
+        Position = UDim2.new(1, -310, 1, -10),
+        AnchorPoint = Vector2.new(0, 1),
+        BackgroundTransparency = 1,
+        ZIndex = 1000,
+        AutomaticSize = Enum.AutomaticSize.Y
+    })
+    
+    create("UIListLayout", {
+        Parent = self.notificationsContainer,
+        Padding = UDim.new(0, 10),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        VerticalAlignment = Enum.VerticalAlignment.Bottom
+    })
+    
+    create("UIPadding", {
+        Parent = self.notificationsContainer,
+        PaddingBottom = UDim.new(0, 10)
+    })
+end
+
+function AdonisEngine.Section(name)
+    local self = getInstance()
+    
+    if not name or type(name) ~= "string" then
+        name = "Unnamed Section"
+    end
+    
+    local sectionButton = create("TextButton", {
+        Parent = self.leftPanel,
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundColor3 = theme.accent,
+        BackgroundTransparency = 0.8,
+        Text = name,
+        TextColor3 = theme.text,
+        TextSize = 16,
+        Font = Enum.Font.GothamSemibold,
+        LayoutOrder = #self.sections + 1
+    })
+    
+    create("UICorner", {
+        Parent = sectionButton,
+        CornerRadius = UDim.new(0.2, 0)
+    })
+    
+    local sectionContainer = create("Frame", {
+        Parent = self.rightPanel,
+        Size = UDim2.new(1, -20, 0, 0),
+        BackgroundTransparency = 1,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Visible = #self.sections == 0
+    })
+    
+    create("UIListLayout", {
+        Parent = sectionContainer,
+        Padding = UDim.new(0, 8),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center
+    })
+    
+    create("UIPadding", {
+        Parent = sectionContainer,
+        PaddingTop = UDim.new(0, 10),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10)
+    })
+    
+    local section = {
+        name = name,
+        button = sectionButton,
+        container = sectionContainer,
+        elements = {}
+    }
+    
+    table.insert(self.sections, section)
+    
+    sectionButton.MouseButton1Click:Connect(function()
+        for _, sec in ipairs(self.sections) do
+            sec.container.Visible = false
+            sec.button.BackgroundTransparency = 0.8
+        end
+        
+        sectionContainer.Visible = true
+        sectionButton.BackgroundTransparency = 0.5
+    end)
+    
+    return section
+end
+
+function AdonisEngine.Button(text, section, callback)
+    local self = getInstance()
+    
+    if not section or not section.container then
+        if #self.sections > 0 then
+            section = self.sections[1]
+        else
+            section = AdonisEngine.Section("Default")
+        end
+    end
+    
+    if not text or type(text) ~= "string" then
+        text = "Button"
+    end
+    
+    if not callback or type(callback) ~= "function" then
+        callback = function() end
+    end
+    
+    local button = create("TextButton", {
+        Parent = section.container,
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundColor3 = theme.surface,
+        BackgroundTransparency = 0.5,
+        Text = text,
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.GothamMedium,
+        LayoutOrder = #section.elements + 1
+    })
+    
+    create("UICorner", {
+        Parent = button,
+        CornerRadius = UDim.new(0.15, 0)
+    })
+    
+    create("UIStroke", {
+        Parent = button,
+        Color = theme.accent,
+        Transparency = 0.7,
+        Thickness = 1
+    })
+    
+    button.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(
+            button,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.3}
+        ):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(
+            button,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.5}
+        ):Play()
+    end)
+    
+    button.MouseButton1Click:Connect(function()
+        game:GetService("TweenService"):Create(
+            button,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.1}
+        ):Play()
+        
+        task.delay(0.1, function()
+            game:GetService("TweenService"):Create(
+                button,
+                TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {BackgroundTransparency = 0.5}
+            ):Play()
+        end)
+        
+        task.spawn(callback)
+    end)
+    
+    table.insert(section.elements, button)
+    
+    return button
+end
+
+function AdonisEngine.Notify(title, description, notifyType, duration, sound, options)
+    local self = getInstance()
+    
+    title = title or "Notification"
+    description = description or ""
+    notifyType = notifyType or "success"
+    duration = duration or 5
+    
+    local validTypes = {error = true, success = true, warning = true}
+    if not validTypes[notifyType] then
+        notifyType = "success"
+    end
+    
+    local notifyColor = theme[notifyType]
+    
+    local notification = create("Frame", {
+        Parent = self.notificationsContainer,
+        Size = UDim2.new(1, -10, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundColor3 = theme.surface,
+        BackgroundTransparency = 0.1,
+        Position = UDim2.new(1, 0, 0, 0),
+        ZIndex = 1000,
+        LayoutOrder = -os.time()
+    })
+    
+    create("UICorner", {
+        Parent = notification,
+        CornerRadius = UDim.new(0.1, 0)
+    })
+    
+    create("UIStroke", {
+        Parent = notification,
+        Color = notifyColor,
+        Thickness = 2
+    })
+    
+    local titleBar = create("Frame", {
+        Parent = notification,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = notifyColor,
+        BackgroundTransparency = 0.2,
+        ZIndex = 1001
+    })
+    
+    create("UICorner", {
+        Parent = titleBar,
+        CornerRadius = UDim.new(0.1, 0)
+    })
+    
+    create("Frame", {
+        Parent = titleBar,
+        Size = UDim2.new(1, 0, 0.5, 0),
+        Position = UDim2.new(0, 0, 0.5, 0),
+        BackgroundColor3 = notifyColor,
+        BackgroundTransparency = 0.2,
+        ZIndex = 1001
+    })
+    
+    local titleText = create("TextLabel", {
+        Parent = titleBar,
+        Size = UDim2.new(1, -10, 1, 0),
+        Position = UDim2.new(0, 5, 0, 0),
+        BackgroundTransparency = 1,
+        Text = title,
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 1002
+    })
+    
+    local descriptionText = create("TextLabel", {
+        Parent = notification,
+        Size = UDim2.new(1, -20, 0, 0),
+        Position = UDim2.new(0, 10, 0, 35),
+        BackgroundTransparency = 1,
+        Text = description,
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.Gotham,
+        TextWrapped = true,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        ZIndex = 1002
+    })
+    
+    local buttonsContainer = nil
+    if options and type(options) == "table" and #options > 0 then
+        buttonsContainer = create("Frame", {
+            Parent = notification,
+            Size = UDim2.new(1, -20, 0, 35),
+            Position = UDim2.new(0, 10, 0, 0),
+            BackgroundTransparency = 1,
+            ZIndex = 1002
+        })
+        
+        descriptionText:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+            buttonsContainer.Position = UDim2.new(0, 10, 0, descriptionText.AbsolutePosition.Y - notification.AbsolutePosition.Y + descriptionText.AbsoluteSize.Y + 5)
+        end)
+        
+        local buttonCount = math.min(#options, 2)
+        for i = 1, buttonCount do
+            local option = options[i]
+            if type(option) == "table" and option.text and option.callback then
+                local button = create("TextButton", {
+                    Parent = buttonsContainer,
+                    Size = UDim2.new(1/buttonCount - 0.05, 0, 1, -10),
+                    Position = UDim2.new((i-1)/buttonCount + (i-1)*0.05, 0, 0, 5),
+                    BackgroundColor3 = theme.accent,
+                    BackgroundTransparency = 0.5,
+                    Text = option.text,
+                    TextColor3 = theme.text,
+                    TextSize = 14,
+                    Font = Enum.Font.GothamMedium,
+                    ZIndex = 1003
+                })
+                
+                create("UICorner", {
+                    Parent = button,
+                    CornerRadius = UDim.new(0.2, 0)
+                })
+                
+                button.MouseButton1Click:Connect(function()
+                    if type(option.callback) == "function" then
+                        task.spawn(option.callback)
+                    end
+                    self:CloseNotification(notification)
+                end)
+            end
+        end
+    end
+    
+    if sound and type(sound) == "string" then
+        local soundInstance = Instance.new("Sound")
+        soundInstance.SoundId = sound
+        soundInstance.Parent = notification
+        soundInstance:Play()
+        
+        soundInstance.Ended:Connect(function()
+            soundInstance:Destroy()
+        end)
+    end
+    
+    table.insert(self.notifications, notification)
+    self:ManageNotifications()
+    
+    notification.Position = UDim2.new(1, 0, 0, 0)
+    game:GetService("TweenService"):Create(
+        notification,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0, 0, 0, 0)}
+    ):Play()
+    
+    task.delay(duration, function()
+        self:CloseNotification(notification)
+    end)
+    
+    return notification
+end
+
+function AdonisEngine:ManageNotifications()
+    local maxVisible = 3
+    
+    for i, notification in ipairs(self.notifications) do
+        if i > maxVisible then
+            notification.Visible = false
+        else
+            notification.Visible = true
+        end
+    end
+end
+
+function AdonisEngine:CloseNotification(notification)
+    if not notification or not notification.Parent then return end
+    
+    game:GetService("TweenService"):Create(
+        notification,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        {Position = UDim2.new(1, 0, 0, 0)}
+    ):Play()
+    
+    task.delay(0.5, function()
+        for i, notif in ipairs(self.notifications) do
+            if notif == notification then
+                table.remove(self.notifications, i)
+                break
+            end
+        end
+        
+        notification:Destroy()
+        self:ManageNotifications()
+    end)
 end
 
 function AdonisEngine:Destroy()
@@ -255,10 +662,12 @@ function AdonisEngine:Destroy()
     end
 end
 
-local function Start(title, iconId)
-    return AdonisEngine.new(title, iconId)
-end
-
-return {
-    Start = Start
+local AE = {
+    Start = AdonisEngine.Start,
+    Section = AdonisEngine.Section,
+    Button = AdonisEngine.Button,
+    Notify = AdonisEngine.Notify,
+    Destroy = AdonisEngine.Destroy
 }
+
+return AE
