@@ -46,7 +46,6 @@ function AdonisEngine.new(title, iconId)
     
     self:CreateTopBar(displayTitle, displayIconId)
     self:CreateContentArea()
-    self:SetupAutoDestroy()
     
     self.mainFrame.Position = UDim2.new(0.5, 0, -1.5, 0)
     self.mainFrame.Visible = true
@@ -70,6 +69,11 @@ function AdonisEngine:CreateTopBar(title, iconId)
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundColor3 = theme.surface,
         BorderSizePixel = 0
+    })
+
+    create("UICorner", {
+        Parent = self.topBar,
+        CornerRadius = UDim.new(0.08, 0)
     })
 
     self.icon = create("ImageLabel", {
@@ -99,6 +103,107 @@ function AdonisEngine:CreateTopBar(title, iconId)
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTransparency = 0.1
     })
+
+    self.closeButton = create("TextButton", {
+        Parent = self.topBar,
+        Size = UDim2.new(0, 32, 0, 32),
+        Position = UDim2.new(1, -40, 0.5, -16),
+        BackgroundColor3 = Color3.fromRGB(200, 60, 60),
+        Text = "X",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 18,
+        Font = Enum.Font.GothamBold
+    })
+
+    create("UICorner", {
+        CornerRadius = UDim.new(0.5, 0),
+        Parent = self.closeButton
+    })
+
+    self.closeButton.MouseButton1Click:Connect(function()
+        self:ShowConfirmationModal()
+    end)
+end
+
+function AdonisEngine:ShowConfirmationModal()
+    self.modal = create("Frame", {
+        Parent = self.gui,
+        Size = UDim2.new(0.4, 0, 0.3, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundColor3 = theme.surface,
+        ZIndex = 10
+    })
+
+    create("UICorner", {
+        Parent = self.modal,
+        CornerRadius = UDim.new(0.08, 0)
+    })
+
+    local modalStroke = create("UIStroke", {
+        Parent = self.modal,
+        Color = theme.accent,
+        Thickness = 2
+    })
+
+    local message = create("TextLabel", {
+        Parent = self.modal,
+        Size = UDim2.new(1, -40, 0.5, 0),
+        Position = UDim2.new(0, 20, 0, 20),
+        BackgroundTransparency = 1,
+        Text = "¿Estás seguro de que quieres cerrar esta ventana?",
+        TextColor3 = theme.text,
+        TextSize = 16,
+        Font = Enum.Font.GothamMedium,
+        TextWrapped = true
+    })
+
+    local buttonContainer = create("Frame", {
+        Parent = self.modal,
+        Size = UDim2.new(1, -40, 0.3, 0),
+        Position = UDim2.new(0, 20, 0.6, 0),
+        BackgroundTransparency = 1
+    })
+
+    local acceptButton = create("TextButton", {
+        Parent = buttonContainer,
+        Size = UDim2.new(0.45, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = Color3.fromRGB(60, 180, 60),
+        Text = "ACCEPT",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14,
+        Font = Enum.Font.GothamBold
+    })
+
+    create("UICorner", {
+        Parent = acceptButton,
+        CornerRadius = UDim.new(0.08, 0)
+    })
+
+    local declineButton = create("TextButton", {
+        Parent = buttonContainer,
+        Size = UDim2.new(0.45, 0, 1, 0),
+        Position = UDim2.new(0.55, 0, 0, 0),
+        BackgroundColor3 = Color3.fromRGB(180, 60, 60),
+        Text = "DECLINE",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14,
+        Font = Enum.Font.GothamBold
+    })
+
+    create("UICorner", {
+        Parent = declineButton,
+        CornerRadius = UDim.new(0.08, 0)
+    })
+
+    acceptButton.MouseButton1Click:Connect(function()
+        self:Destroy()
+    end)
+
+    declineButton.MouseButton1Click:Connect(function()
+        self.modal:Destroy()
+    end)
 end
 
 function AdonisEngine:CreateContentArea()
@@ -145,30 +250,10 @@ function AdonisEngine:CreateContentArea()
     })
 end
 
-function AdonisEngine:SetupAutoDestroy(destroyTime)
-    destroyTime = destroyTime or 10
-    local startTime = os.clock()
-
-    self.destroyConnection = game:GetService("RunService").Heartbeat:Connect(function()
-        local elapsed = os.clock() - startTime
-        if elapsed >= destroyTime then
-            local exitAnim = game:GetService("TweenService"):Create(
-                self.mainFrame,
-                TweenInfo.new(0.6, Enum.EasingStyle.Quint),
-                {Position = UDim2.new(0.5, 0, 1.5, 0)}
-            )
-            exitAnim:Play()
-            exitAnim.Completed:Wait()
-            self:Destroy()
-        end
-    end)
-end
-
 function AdonisEngine:Destroy()
-    if self.destroyConnection then
-        self.destroyConnection:Disconnect()
+    if self.gui then
+        self.gui:Destroy()
     end
-    self.gui:Destroy()
 end
 
 local function Start(title, iconId)
