@@ -108,7 +108,7 @@ function AdonisEngine:CreateTopBar(title, iconId)
     self.closeButton = create("TextButton", {
         Parent = self.topBar,
         Size = UDim2.new(0, 32, 0, 32),
-        Position = UDim2.new(1, -40, 0.5, -16),
+        Position = UDim2.new(1, -40, 0.5, -26),
         BackgroundTransparency = 1,
         Text = "X",
         TextColor3 = theme.text,
