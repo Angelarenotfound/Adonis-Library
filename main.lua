@@ -83,7 +83,8 @@ function AdonisEngine:CreateTopBar(title, iconId)
         BackgroundTransparency = 1,
         Image = "rbxassetid://"..tostring(iconId),
         ImageColor3 = theme.accent,
-        ScaleType = Enum.ScaleType.Fit
+        ScaleType = Enum.ScaleType.Fit,
+        ImageTransparency = 0
     })
 
     create("UICorner", {
