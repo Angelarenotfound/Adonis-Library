@@ -1,7 +1,6 @@
 local AdonisEngine = {}
 AdonisEngine.__index = AdonisEngine
 
--- Configuración de diseño
 local theme = {
     background = Color3.fromRGB(13, 13, 18),
     surface = Color3.fromRGB(22, 22, 28),
@@ -20,6 +19,9 @@ end
 
 function AdonisEngine.new(title, iconId)
     local self = setmetatable({}, AdonisEngine)
+    
+    title = tostring(title or "Adonis Library")
+    iconId = tonumber(iconId) or 7072716642
     
     self.gui = create("ScreenGui", {
         ResetOnSpawn = false,
@@ -46,7 +48,6 @@ function AdonisEngine.new(title, iconId)
     self:CreateContentArea()
     self:SetupAutoDestroy()
     
-    -- Animación de entrada
     self.mainFrame.Position = UDim2.new(0.5, 0, -1.5, 0)
     self.mainFrame.Visible = true
     
@@ -71,13 +72,11 @@ function AdonisEngine:CreateTopBar(title, iconId)
         BorderSizePixel = 0
     })
 
-    -- Solo esquinas inferiores redondeadas
     create("UICorner", {
         Parent = self.topBar,
         CornerRadius = UDim.new(0, 0, 0, 0.08, 0, 0.08)
     })
 
-    -- Icono circular
     self.icon = create("ImageLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0, 32, 0, 32),
@@ -93,7 +92,6 @@ function AdonisEngine:CreateTopBar(title, iconId)
         Parent = self.icon
     })
 
-    -- Título
     self.title = create("TextLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0.8, 0, 1, 0),
@@ -116,7 +114,6 @@ function AdonisEngine:CreateContentArea()
         BackgroundTransparency = 1
     })
 
-    -- Panel izquierdo (30%)
     self.leftPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
         Size = UDim2.new(0.3, -5, 1, 0),
@@ -130,7 +127,6 @@ function AdonisEngine:CreateContentArea()
         Parent = self.leftPanel
     })
 
-    -- Panel derecho (70%)
     self.rightPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
         Size = UDim2.new(0.7, -5, 1, 0),
@@ -145,7 +141,6 @@ function AdonisEngine:CreateContentArea()
         Parent = self.rightPanel
     })
 
-    -- Divisor
     create("Frame", {
         Parent = self.contentFrame,
         Size = UDim2.new(0, 1, 1, 0),
@@ -181,7 +176,6 @@ function AdonisEngine:Destroy()
     self.gui:Destroy()
 end
 
--- Función de inicialización global
 local function Start(title, iconId)
     return AdonisEngine.new(title, iconId)
 end
