@@ -149,7 +149,7 @@ function AdonisEngine:ShowConfirmationModal()
         Size = UDim2.new(1, -20, 0.5, -20),
         Position = UDim2.new(0, 10, 0, 10),
         BackgroundTransparency = 1,
-        Text = "¿Estás seguro de que quieres cerrar esta ventana?",
+        Text = "¿Are you sure you want to close the Gui?",
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.GothamMedium,
