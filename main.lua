@@ -40,8 +40,11 @@ function AdonisEngine.new(title, iconId)
         Parent = self.mainFrame,
         CornerRadius = UDim.new(0.08, 0)
     })
+
+    local displayTitle = if type(title) == "string" and title ~= "" then title else "Adonis Except"
+    local displayIconId = if type(iconId) == "number" then iconId else 110915885697382
     
-    self:CreateTopBar(title or "Adonis Except", tonumber(iconId) or 110915885697382)
+    self:CreateTopBar(displayTitle, displayIconId)
     self:CreateContentArea()
     self:SetupAutoDestroy()
     
@@ -67,11 +70,6 @@ function AdonisEngine:CreateTopBar(title, iconId)
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundColor3 = theme.surface,
         BorderSizePixel = 0
-    })
-
-    create("UICorner", {
-        Parent = self.topBar,
-        CornerRadius = UDim.new(0, 0, 0, 0.08, 0, 0.08)
     })
 
     self.icon = create("ImageLabel", {
