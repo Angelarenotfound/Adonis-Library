@@ -108,16 +108,11 @@ function AdonisEngine:CreateTopBar(title, iconId)
         Parent = self.topBar,
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(1, -40, 0.5, -16),
-        BackgroundColor3 = Color3.fromRGB(200, 60, 60),
+        BackgroundTransparency = 1,
         Text = "X",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
+        TextColor3 = theme.text,
+        TextSize = 20,
         Font = Enum.Font.GothamBold
-    })
-
-    create("UICorner", {
-        CornerRadius = UDim.new(0.5, 0),
-        Parent = self.closeButton
     })
 
     self.closeButton.MouseButton1Click:Connect(function()
@@ -126,12 +121,15 @@ function AdonisEngine:CreateTopBar(title, iconId)
 end
 
 function AdonisEngine:ShowConfirmationModal()
+    if self.modal then return end
+    
     self.modal = create("Frame", {
         Parent = self.gui,
-        Size = UDim2.new(0.4, 0, 0.3, 0),
+        Size = UDim2.new(0.4, 0, 0.25, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         BackgroundColor3 = theme.surface,
+        BackgroundTransparency = 0,
         ZIndex = 10
     })
 
@@ -140,7 +138,7 @@ function AdonisEngine:ShowConfirmationModal()
         CornerRadius = UDim.new(0.08, 0)
     })
 
-    local modalStroke = create("UIStroke", {
+    create("UIStroke", {
         Parent = self.modal,
         Color = theme.accent,
         Thickness = 2
@@ -148,21 +146,23 @@ function AdonisEngine:ShowConfirmationModal()
 
     local message = create("TextLabel", {
         Parent = self.modal,
-        Size = UDim2.new(1, -40, 0.5, 0),
-        Position = UDim2.new(0, 20, 0, 20),
+        Size = UDim2.new(1, -20, 0.5, -20),
+        Position = UDim2.new(0, 10, 0, 10),
         BackgroundTransparency = 1,
         Text = "¿Estás seguro de que quieres cerrar esta ventana?",
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.GothamMedium,
-        TextWrapped = true
+        TextWrapped = true,
+        ZIndex = 11
     })
 
     local buttonContainer = create("Frame", {
         Parent = self.modal,
-        Size = UDim2.new(1, -40, 0.3, 0),
-        Position = UDim2.new(0, 20, 0.6, 0),
-        BackgroundTransparency = 1
+        Size = UDim2.new(1, -20, 0.3, 0),
+        Position = UDim2.new(0, 10, 0.65, 0),
+        BackgroundTransparency = 1,
+        ZIndex = 11
     })
 
     local acceptButton = create("TextButton", {
@@ -173,12 +173,14 @@ function AdonisEngine:ShowConfirmationModal()
         Text = "ACCEPT",
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 14,
-        Font = Enum.Font.GothamBold
+        Font = Enum.Font.GothamBold,
+        ZIndex = 12
     })
 
     create("UICorner", {
         Parent = acceptButton,
-        CornerRadius = UDim.new(0.08, 0)
+        CornerRadius = UDim.new(0.08, 0),
+        ZIndex = 12
     })
 
     local declineButton = create("TextButton", {
@@ -189,12 +191,14 @@ function AdonisEngine:ShowConfirmationModal()
         Text = "DECLINE",
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 14,
-        Font = Enum.Font.GothamBold
+        Font = Enum.Font.GothamBold,
+        ZIndex = 12
     })
 
     create("UICorner", {
         Parent = declineButton,
-        CornerRadius = UDim.new(0.08, 0)
+        CornerRadius = UDim.new(0.08, 0),
+        ZIndex = 12
     })
 
     acceptButton.MouseButton1Click:Connect(function()
@@ -203,6 +207,7 @@ function AdonisEngine:ShowConfirmationModal()
 
     declineButton.MouseButton1Click:Connect(function()
         self.modal:Destroy()
+        self.modal = nil
     end)
 end
 
