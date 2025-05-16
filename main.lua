@@ -314,6 +314,7 @@ end
 function AdonisEngine.Section(name)
     local self = getInstance()
     
+    -- Corrección: Asegurarse de que el nombre se asigne correctamente
     local sectionName = "Unnamed Section"
     if name and type(name) == "string" and name ~= "" then
         sectionName = name
@@ -324,7 +325,7 @@ function AdonisEngine.Section(name)
         Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = theme.accent,
         BackgroundTransparency = 0.8,
-        Text = sectionName,
+        Text = sectionName, -- Usar el nombre validado
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.GothamSemibold,
@@ -360,7 +361,7 @@ function AdonisEngine.Section(name)
     })
 
     local section = {
-        name = sectionName,
+        name = sectionName, -- Usar el nombre validado
         button = sectionButton,
         container = sectionContainer,
         elements = {}
@@ -384,21 +385,25 @@ end
 function AdonisEngine.Button(text, section, callback)
     local self = getInstance()
     
+    -- Corrección: Validar y asignar el texto del botón
     local buttonText = "Button"
     if text and type(text) == "string" and text ~= "" then
         buttonText = text
     end
     
+    -- Corrección: Validar y asignar la función de callback
     local buttonCallback = function() end
     if callback and type(callback) == "function" then
         buttonCallback = callback
     end
 
-    if not section or not section.container then
+    -- Corrección: Asegurarse de que la sección sea válida
+    if not section or type(section) ~= "table" or not section.container then
         if #self.sections > 0 then
             section = self.sections[1]
         else
-            section = AdonisEngine.Section("Default")
+            -- Si no hay secciones, crear una por defecto
+            section = self.Section("Default")
         end
     end
 
@@ -407,7 +412,7 @@ function AdonisEngine.Button(text, section, callback)
         Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0.5,
-        Text = buttonText,
+        Text = buttonText, -- Usar el texto validado
         TextColor3 = theme.text,
         TextSize = 14,
         Font = Enum.Font.GothamMedium,
@@ -457,6 +462,7 @@ function AdonisEngine.Button(text, section, callback)
             ):Play()
         end)
 
+        -- Ejecutar el callback
         task.spawn(buttonCallback)
     end)
 
