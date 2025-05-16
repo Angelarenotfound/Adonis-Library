@@ -528,7 +528,7 @@ function AdonisEngine.Start(title, options)
         Parent = self.gui,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0.55, 0, 0.6, 0),
+        Size = UDim2.new(0.7, 0, 0.9, 0),
         BackgroundColor3 = theme.background,
         BackgroundTransparency = 0,
         ClipsDescendants = true
