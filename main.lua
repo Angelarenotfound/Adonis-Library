@@ -314,11 +314,8 @@ end
 function AdonisEngine.Section(name)
     local self = getInstance()
     
-    -- Corrección: Asegurarse de que el nombre se asigne correctamente
-    local sectionName = "Unnamed Section"
-    if name and type(name) == "string" and name ~= "" then
-        sectionName = name
-    end
+
+    sectionName = name
 
     local sectionButton = create("TextButton", {
         Parent = self.leftPanel,
@@ -384,20 +381,11 @@ end
 
 function AdonisEngine.Button(text, section, callback)
     local self = getInstance()
-    
-    -- Corrección: Validar y asignar el texto del botón
-    local buttonText = "Button"
-    if text and type(text) == "string" and text ~= "" then
-        buttonText = text
-    end
-    
-    -- Corrección: Validar y asignar la función de callback
-    local buttonCallback = function() end
-    if callback and type(callback) == "function" then
-        buttonCallback = callback
-    end
 
-    -- Corrección: Asegurarse de que la sección sea válida
+    buttonText = text
+    
+    buttonCallback = callback
+
     if not section or type(section) ~= "table" or not section.container then
         if #self.sections > 0 then
             section = self.sections[1]
