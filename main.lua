@@ -59,8 +59,8 @@ function AdonisEngine.Start(title, iconId)
         CornerRadius = UDim.new(0.08, 0)
     })
 
-    local displayTitle = if type(title) == "string" and title ~= "" then title else "Adonis Except"
-    local displayIconId = if type(iconId) == "number" then iconId else 110915885697382
+    local displayTitle = (type(title) == "string" and title ~= "") and title or "Adonis Except"
+    local displayIconId = (type(iconId) == "number") and iconId or 110915885697382
 
     self:CreateTopBar(displayTitle, displayIconId)
     self:CreateContentArea()
@@ -312,17 +312,16 @@ function AdonisEngine:CreateNotificationsContainer()
 end
 
 function AdonisEngine.Section(name)
+    assert(type(name) == "string" and name ~= "", "Se requiere un nombre de sección válido (string no vacío)")
+    
     local self = getInstance()
     
-
-    sectionName = name
-
     local sectionButton = create("TextButton", {
         Parent = self.leftPanel,
         Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = theme.accent,
         BackgroundTransparency = 0.8,
-        Text = sectionName, -- Usar el nombre validado
+        Text = name,
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.GothamSemibold,
@@ -358,7 +357,7 @@ function AdonisEngine.Section(name)
     })
 
     local section = {
-        name = sectionName, -- Usar el nombre validado
+        name = name,
         button = sectionButton,
         container = sectionContainer,
         elements = {}
@@ -380,27 +379,18 @@ function AdonisEngine.Section(name)
 end
 
 function AdonisEngine.Button(text, section, callback)
+    assert(type(text) == "string" and text ~= "", "Se requiere un texto de botón válido")
+    assert(type(section) == "table" and section.container, "Se requiere una sección válida")
+    assert(type(callback) == "function", "Se requiere una función callback válida")
+
     local self = getInstance()
-
-    buttonText = text
     
-    buttonCallback = callback
-
-    if not section or type(section) ~= "table" or not section.container then
-        if #self.sections > 0 then
-            section = self.sections[1]
-        else
-            -- Si no hay secciones, crear una por defecto
-            section = self.Section("Default")
-        end
-    end
-
     local button = create("TextButton", {
         Parent = section.container,
         Size = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0.5,
-        Text = buttonText, -- Usar el texto validado
+        Text = text,
         TextColor3 = theme.text,
         TextSize = 14,
         Font = Enum.Font.GothamMedium,
@@ -450,8 +440,7 @@ function AdonisEngine.Button(text, section, callback)
             ):Play()
         end)
 
-        -- Ejecutar el callback
-        task.spawn(buttonCallback)
+        callback()
     end)
 
     table.insert(section.elements, button)
