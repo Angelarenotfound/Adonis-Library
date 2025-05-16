@@ -31,12 +31,15 @@ local function getInstance()
     return _instance
 end
 
-function AdonisEngine.Start(title, iconId)
+function AdonisEngine.Start(title, iconId, DevMode)
     local self = getInstance()
-
+    DevMode = DevMode or false
+    
     if self.gui then
         self.gui:Destroy()
     end
+
+    self.DevMode = DevMode
 
     self.gui = create("ScreenGui", {
         ResetOnSpawn = false,
@@ -77,6 +80,10 @@ function AdonisEngine.Start(title, iconId)
 
     self.gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     self:CreateNotificationsContainer()
+    
+    if self.DevMode then
+        self:Notify("DevMode Enabled", "AdonisEngine is running in developer mode", "success", 5)
+    end
 
     return self
 end
@@ -311,11 +318,16 @@ function AdonisEngine:CreateNotificationsContainer()
     })
 end
 
-function AdonisEngine.Section(name)
-    assert(type(name) == "string" and name ~= "", "Se requiere un nombre de sección válido (string no vacío)")
-    
+function AdonisEngine:Section(name)
     local self = getInstance()
-    
+
+    if not name or type(name) ~= "string" then
+        name = "Unnamed Section"
+        if self.DevMode then
+            self:Notify("Missing Parameter", "Section name is required", "warning", 3)
+        end
+    end
+
     local sectionButton = create("TextButton", {
         Parent = self.leftPanel,
         Size = UDim2.new(1, 0, 0, 40),
@@ -374,17 +386,43 @@ function AdonisEngine.Section(name)
         sectionContainer.Visible = true
         sectionButton.BackgroundTransparency = 0.5
     end)
+    
+    if self.DevMode then
+        self:Notify("Section Created", "Section '" .. name .. "' created successfully", "success", 3)
+    end
 
     return section
 end
 
-function AdonisEngine.Button(text, section, callback)
-    assert(type(text) == "string" and text ~= "", "Se requiere un texto de botón válido")
-    assert(type(section) == "table" and section.container, "Se requiere una sección válida")
-    assert(type(callback) == "function", "Se requiere una función callback válida")
-
+function AdonisEngine:Button(text, section, callback)
     local self = getInstance()
-    
+
+    if not section or not section.container then
+        if #self.sections > 0 then
+            section = self.sections[1]
+        else
+            section = self:Section("Default")
+        end
+        
+        if self.DevMode then
+            self:Notify("Missing Parameter", "Section not specified for button", "warning", 3)
+        end
+    end
+
+    if not text or type(text) ~= "string" then
+        text = "Button"
+        if self.DevMode then
+            self:Notify("Missing Parameter", "Button text is required", "warning", 3)
+        end
+    end
+
+    if not callback or type(callback) ~= "function" then
+        callback = function() end
+        if self.DevMode then
+            self:Notify("Missing Parameter", "Button callback is required", "warning", 3)
+        end
+    end
+
     local button = create("TextButton", {
         Parent = section.container,
         Size = UDim2.new(1, 0, 0, 40),
@@ -440,18 +478,29 @@ function AdonisEngine.Button(text, section, callback)
             ):Play()
         end)
 
-        callback()
+        task.spawn(callback)
     end)
 
     table.insert(section.elements, button)
+    
+    if self.DevMode then
+        self:Notify("Button Created", "Button '" .. text .. "' created successfully", "success", 3)
+    end
 
     return button
 end
 
-function AdonisEngine.Notify(title, description, notifyType, duration, sound, options)
+function AdonisEngine:Notify(title, description, notifyType, duration, sound, options)
     local self = getInstance()
 
-    title = title or "Notification"
+    if not title or type(title) ~= "string" then
+        title = "Notification"
+        if self.DevMode then
+            description = "Missing title parameter in Notify function" .. (description and (": " .. description) or "")
+            notifyType = "warning"
+        end
+    end
+    
     description = description or ""
     notifyType = notifyType or "success"
     duration = duration or 5
@@ -459,6 +508,10 @@ function AdonisEngine.Notify(title, description, notifyType, duration, sound, op
     local validTypes = {error = true, success = true, warning = true}
     if not validTypes[notifyType] then
         notifyType = "success"
+        if self.DevMode then
+            description = "Invalid notification type: " .. tostring(notifyType) .. ". " .. description
+            notifyType = "warning"
+        end
     end
 
     local notifyColor = theme[notifyType]
