@@ -26,15 +26,346 @@ local function getInstance()
     if not _instance then
         _instance = setmetatable({}, AdonisEngine)
         _instance.sections = {}
-        _instance.notifications = {}
     end
     return _instance
+end
+
+local Notifications = {}
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local notificationQueue = {}
+local maxNotificationsVisible = 5
+local activeNotifications = {}
+
+local function createTween(instance, properties, duration, style, direction)
+    local tweenInfo = TweenInfo.new(
+        duration or 0.3,
+        style or Enum.EasingStyle.Quint,
+        direction or Enum.EasingDirection.Out
+    )
+    return TweenService:Create(instance, tweenInfo, properties)
+end
+
+local function createRippleEffect(button, rippleColor)
+    local ripple = Instance.new("Frame")
+    ripple.BackgroundColor3 = rippleColor or Color3.fromRGB(255, 255, 255)
+    ripple.BackgroundTransparency = 0.8
+    ripple.BorderSizePixel = 0
+    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.Parent = button
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = ripple
+    
+    local mousePos = UserInputService:GetMouseLocation() - Vector2.new(button.AbsolutePosition.X, button.AbsolutePosition.Y)
+    ripple.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
+    
+    local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2
+    local appearTween = createTween(ripple, {Size = UDim2.new(0, maxSize, 0, maxSize), BackgroundTransparency = 1}, 0.5)
+    appearTween:Play()
+    
+    appearTween.Completed:Connect(function()
+        ripple:Destroy()
+    end)
+end
+
+local function isMobile()
+    return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled and not UserInputService.MouseEnabled
+end
+
+local function adjustForMobile(size)
+    if isMobile() then
+        local screenSize = workspace.CurrentCamera.ViewportSize
+        local scaleFactor = math.min(screenSize.X / 1920, screenSize.Y / 1080)
+        return math.max(size * scaleFactor, size * 0.8)
+    end
+    return size
+end
+
+function Notifications.createContainer(mainGui)
+    mainGui.NotificationsContainer = Instance.new("Frame")
+    mainGui.NotificationsContainer.Name = "NotificationsContainer"
+    mainGui.NotificationsContainer.Size = UDim2.new(0, 300, 1, -40)
+    mainGui.NotificationsContainer.Position = UDim2.new(1, -320, 0, 20)
+    mainGui.NotificationsContainer.BackgroundTransparency = 1
+    mainGui.NotificationsContainer.Parent = mainGui
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 10)
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    listLayout.Parent = mainGui.NotificationsContainer
+end
+
+function Notifications.processQueue()
+    if #notificationQueue > 0 and #activeNotifications < maxNotificationsVisible then
+        local nextNotification = table.remove(notificationQueue, 1)
+        table.insert(activeNotifications, nextNotification)
+        nextNotification:Show()
+    end
+end
+
+function Notifications.show(mainGui, title, description, notificationType, options)
+    options = options or {}
+    
+    local notification = {
+        mainGui = mainGui,
+        title = title,
+        description = description,
+        notificationType = notificationType,
+        options = options,
+        frame = nil,
+        isVisible = false,
+        isDestroyed = false
+    }
+    
+    function notification:Show()
+        if self.isDestroyed then return end
+        
+        local notificationColor
+        if self.notificationType == "success" then
+            notificationColor = theme.success
+        elseif self.notificationType == "warning" then
+            notificationColor = theme.warning
+        elseif self.notificationType == "error" then
+            notificationColor = theme.error
+        else
+            notificationColor = theme.accent
+        end
+        
+        local notificationHeight = self.options.height or (self.options.buttons and 120 or 80)
+        
+        self.frame = Instance.new("Frame")
+        self.frame.Size = UDim2.new(1, 0, 0, notificationHeight)
+        self.frame.BackgroundColor3 = theme.surface
+        self.frame.BorderSizePixel = 0
+        self.frame.Position = UDim2.new(1, 300, 0, 0)
+        self.frame.AnchorPoint = Vector2.new(0, 0)
+        self.frame.Parent = self.mainGui.NotificationsContainer
+        
+        local shadow = Instance.new("ImageLabel")
+        shadow.Size = UDim2.new(1, 40, 1, 40)
+        shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        shadow.BackgroundTransparency = 1
+        shadow.Image = "rbxassetid://6014261993"
+        shadow.ImageColor3 = Color3.new(0, 0, 0)
+        shadow.ImageTransparency = 0.5
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(49, 49, 450, 450)
+        shadow.ZIndex = self.frame.ZIndex - 1
+        shadow.Parent = self.frame
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = self.frame
+        
+        local topBar = Instance.new("Frame")
+        topBar.Size = UDim2.new(1, 0, 0, 6)
+        topBar.BackgroundColor3 = notificationColor
+        topBar.BorderSizePixel = 0
+        topBar.Parent = self.frame
+        
+        local topCorner = Instance.new("UICorner")
+        topCorner.CornerRadius = UDim.new(0, 4)
+        topCorner.Parent = topBar
+        
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Size = UDim2.new(1, -60, 0, 24)
+        titleLabel.Position = UDim2.new(0, 15, 0, 15)
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Font = Enum.Font.GothamSemibold
+        titleLabel.TextSize = 16
+        titleLabel.TextColor3 = theme.text
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.Text = self.title
+        titleLabel.Parent = self.frame
+        
+        local descriptionLabel = Instance.new("TextLabel")
+        descriptionLabel.Size = UDim2.new(1, -30, 0, 40)
+        descriptionLabel.Position = UDim2.new(0, 15, 0, 39)
+        descriptionLabel.BackgroundTransparency = 1
+        descriptionLabel.Font = Enum.Font.Gotham
+        descriptionLabel.TextSize = 14
+        descriptionLabel.TextColor3 = theme.text
+        descriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        descriptionLabel.TextYAlignment = Enum.TextYAlignment.Top
+        descriptionLabel.TextWrapped = true
+        descriptionLabel.Text = self.description
+        descriptionLabel.Parent = self.frame
+        
+        if self.options.buttons then
+            local buttonContainer = Instance.new("Frame")
+            buttonContainer.Size = UDim2.new(1, -30, 0, 30)
+            buttonContainer.Position = UDim2.new(0, 15, 1, -40)
+            buttonContainer.BackgroundTransparency = 1
+            buttonContainer.Parent = self.frame
+            
+            local buttonLayout = Instance.new("UIListLayout")
+            buttonLayout.FillDirection = Enum.FillDirection.Horizontal
+            buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+            buttonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            buttonLayout.Padding = UDim.new(0, 10)
+            buttonLayout.Parent = buttonContainer
+            
+            for i, buttonInfo in ipairs(self.options.buttons) do
+                local button = Instance.new("TextButton")
+                button.Size = UDim2.new(0, 80, 1, 0)
+                button.BackgroundColor3 = i == 1 and notificationColor or theme.background
+                button.BorderSizePixel = 0
+                button.Font = Enum.Font.GothamMedium
+                button.TextSize = 14
+                button.TextColor3 = theme.text
+                button.Text = buttonInfo.text
+                button.LayoutOrder = i
+                button.ClipsDescendants = true
+                button.AutoButtonColor = false
+                button.Parent = buttonContainer
+                
+                local buttonCorner = Instance.new("UICorner")
+                buttonCorner.CornerRadius = UDim.new(0, 4)
+                buttonCorner.Parent = button
+                
+                local buttonShadow = Instance.new("ImageLabel")
+                buttonShadow.Size = UDim2.new(1, 6, 1, 6)
+                buttonShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+                buttonShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+                buttonShadow.BackgroundTransparency = 1
+                buttonShadow.Image = "rbxassetid://6014261993"
+                buttonShadow.ImageColor3 = Color3.new(0, 0, 0)
+                buttonShadow.ImageTransparency = 0.8
+                buttonShadow.ScaleType = Enum.ScaleType.Slice
+                buttonShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+                buttonShadow.ZIndex = button.ZIndex - 1
+                buttonShadow.Parent = button
+                
+                button.MouseEnter:Connect(function()
+                    createTween(button, {
+                        BackgroundColor3 = i == 1 and 
+                            Color3.new(
+                                math.min(notificationColor.R + 0.1, 1),
+                                math.min(notificationColor.G + 0.1, 1),
+                                math.min(notificationColor.B + 0.1, 1)
+                            ) or theme.accent
+                    }):Play()
+                end)
+                
+                button.MouseLeave:Connect(function()
+                    createTween(button, {
+                        BackgroundColor3 = i == 1 and notificationColor or theme.background
+                    }):Play()
+                end)
+                
+                button.MouseButton1Click:Connect(function()
+                    createRippleEffect(button, Color3.fromRGB(255, 255, 255))
+                    if buttonInfo.callback then
+                        buttonInfo.callback()
+                    end
+                    self:Destroy()
+                end)
+            end
+        end
+        
+        local closeButton = Instance.new("TextButton")
+        closeButton.Size = UDim2.new(0, 24, 0, 24)
+        closeButton.Position = UDim2.new(1, -30, 0, 15)
+        closeButton.BackgroundTransparency = 1
+        closeButton.Font = Enum.Font.GothamSemibold
+        closeButton.TextSize = 16
+        closeButton.TextColor3 = theme.text
+        closeButton.Text = "✕"
+        closeButton.Parent = self.frame
+        
+        closeButton.MouseEnter:Connect(function()
+            createTween(closeButton, {TextColor3 = theme.error}):Play()
+        end)
+        
+        closeButton.MouseLeave:Connect(function()
+            createTween(closeButton, {TextColor3 = theme.text}):Play()
+        end)
+        
+        closeButton.MouseButton1Click:Connect(function()
+            createRippleEffect(closeButton, theme.error)
+            self:Destroy()
+        end)
+        
+        if self.options.sound then
+            local sound = Instance.new("Sound")
+            sound.SoundId = self.options.sound
+            sound.Volume = self.options.volume or 0.5
+            sound.Parent = self.frame
+            sound:Play()
+        end
+        
+        self.isVisible = true
+        createTween(
+            self.frame,
+            {Position = UDim2.new(0, 0, 0, 0)},
+            0.3,
+            Enum.EasingStyle.Back
+        ):Play()
+        
+        local duration = self.options.duration or 5
+        if duration > 0 then
+            task.delay(duration, function()
+                if self.isVisible and not self.isDestroyed then
+                    self:Destroy()
+                end
+            end)
+        end
+    end
+    
+    function notification:Destroy()
+        if self.isDestroyed then return end
+        self.isDestroyed = true
+        
+        if self.frame then
+            createTween(
+                self.frame,
+                {Position = UDim2.new(1, 300, 0, 0)},
+                0.3,
+                Enum.EasingStyle.Back,
+                Enum.EasingDirection.In
+            ):Play()
+            
+            for i, notif in ipairs(activeNotifications) do
+                if notif == self then
+                    table.remove(activeNotifications, i)
+                    break
+                end
+            end
+            
+            task.delay(0.1, function()
+                Notifications.processQueue()
+            end)
+            
+            task.delay(0.3, function()
+                if self.frame and self.frame.Parent then
+                    self.frame:Destroy()
+                    self.frame = nil
+                end
+            end)
+        end
+    end
+    
+    if #activeNotifications < maxNotificationsVisible then
+        table.insert(activeNotifications, notification)
+        notification:Show()
+    else
+        table.insert(notificationQueue, notification)
+    end
+    
+    return notification
 end
 
 function AdonisEngine.Start(title, iconId, DevMode)
     local self = getInstance()
     DevMode = DevMode or false
-    
+
     if self.gui then
         self.gui:Destroy()
     end
@@ -79,8 +410,8 @@ function AdonisEngine.Start(title, iconId, DevMode)
     enterAnim:Play()
 
     self.gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    self:CreateNotificationsContainer()
-    
+    Notifications.createContainer(self.gui)
+
     if self.DevMode then
         self:Notify("DevMode Enabled", "AdonisEngine is running in developer mode", "success", 5)
     end
@@ -294,30 +625,6 @@ function AdonisEngine:CreateContentArea()
     })
 end
 
-function AdonisEngine:CreateNotificationsContainer()
-    self.notificationsContainer = create("Frame", {
-        Parent = self.gui,
-        Size = UDim2.new(0, 300, 0, 0),
-        Position = UDim2.new(1, -310, 1, -10),
-        AnchorPoint = Vector2.new(0, 1),
-        BackgroundTransparency = 1,
-        ZIndex = 1000,
-        AutomaticSize = Enum.AutomaticSize.Y
-    })
-
-    create("UIListLayout", {
-        Parent = self.notificationsContainer,
-        Padding = UDim.new(0, 10),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        VerticalAlignment = Enum.VerticalAlignment.Bottom
-    })
-
-    create("UIPadding", {
-        Parent = self.notificationsContainer,
-        PaddingBottom = UDim.new(0, 10)
-    })
-end
-
 function AdonisEngine:Section(name)
     local self = getInstance()
 
@@ -386,7 +693,7 @@ function AdonisEngine:Section(name)
         sectionContainer.Visible = true
         sectionButton.BackgroundTransparency = 0.5
     end)
-    
+
     if self.DevMode then
         self:Notify("Section Created", "Section '" .. name .. "' created successfully", "success", 3)
     end
@@ -403,7 +710,7 @@ function AdonisEngine:Button(text, section, callback)
         else
             section = self:Section("Default")
         end
-        
+
         if self.DevMode then
             self:Notify("Missing Parameter", "Section not specified for button", "warning", 3)
         end
@@ -482,7 +789,7 @@ function AdonisEngine:Button(text, section, callback)
     end)
 
     table.insert(section.elements, button)
-    
+
     if self.DevMode then
         self:Notify("Button Created", "Button '" .. text .. "' created successfully", "success", 3)
     end
@@ -500,7 +807,7 @@ function AdonisEngine:Notify(title, description, notifyType, duration, sound, op
             notifyType = "warning"
         end
     end
-    
+
     description = description or ""
     notifyType = notifyType or "success"
     duration = duration or 5
@@ -514,185 +821,16 @@ function AdonisEngine:Notify(title, description, notifyType, duration, sound, op
         end
     end
 
-    local notifyColor = theme[notifyType]
+    local notificationOptions = {
+        duration = duration,
+        sound = sound
+    }
 
-    local notification = create("Frame", {
-        Parent = self.notificationsContainer,
-        Size = UDim2.new(1, -10, 0, 0),
-        AutomaticSize = Enum.AutomaticSize.Y,
-        BackgroundColor3 = theme.surface,
-        BackgroundTransparency = 0.1,
-        Position = UDim2.new(1, 0, 0, 0),
-        ZIndex = 1000,
-        LayoutOrder = -os.time()
-    })
-
-    create("UICorner", {
-        Parent = notification,
-        CornerRadius = UDim.new(0.1, 0)
-    })
-
-    create("UIStroke", {
-        Parent = notification,
-        Color = notifyColor,
-        Thickness = 2
-    })
-
-    local titleBar = create("Frame", {
-        Parent = notification,
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundColor3 = notifyColor,
-        BackgroundTransparency = 0.2,
-        ZIndex = 1001
-    })
-
-    create("UICorner", {
-        Parent = titleBar,
-        CornerRadius = UDim.new(0.1, 0)
-    })
-
-    create("Frame", {
-        Parent = titleBar,
-        Size = UDim2.new(1, 0, 0.5, 0),
-        Position = UDim2.new(0, 0, 0.5, 0),
-        BackgroundColor3 = notifyColor,
-        BackgroundTransparency = 0.2,
-        ZIndex = 1001
-    })
-
-    local titleText = create("TextLabel", {
-        Parent = titleBar,
-        Size = UDim2.new(1, -10, 1, 0),
-        Position = UDim2.new(0, 5, 0, 0),
-        BackgroundTransparency = 1,
-        Text = title,
-        TextColor3 = theme.text,
-        TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 1002
-    })
-
-    local descriptionText = create("TextLabel", {
-        Parent = notification,
-        Size = UDim2.new(1, -20, 0, 0),
-        Position = UDim2.new(0, 10, 0, 35),
-        BackgroundTransparency = 1,
-        Text = description,
-        TextColor3 = theme.text,
-        TextSize = 14,
-        Font = Enum.Font.Gotham,
-        TextWrapped = true,
-        AutomaticSize = Enum.AutomaticSize.Y,
-        ZIndex = 1002
-    })
-
-    local buttonsContainer = nil
-    if options and type(options) == "table" and #options > 0 then
-        buttonsContainer = create("Frame", {
-            Parent = notification,
-            Size = UDim2.new(1, -20, 0, 35),
-            Position = UDim2.new(0, 10, 0, 0),
-            BackgroundTransparency = 1,
-            ZIndex = 1002
-        })
-
-        descriptionText:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-            buttonsContainer.Position = UDim2.new(0, 10, 0, descriptionText.AbsolutePosition.Y - notification.AbsolutePosition.Y + descriptionText.AbsoluteSize.Y + 5)
-        end)
-
-        local buttonCount = math.min(#options, 2)
-        for i = 1, buttonCount do
-            local option = options[i]
-            if type(option) == "table" and option.text and option.callback then
-                local button = create("TextButton", {
-                    Parent = buttonsContainer,
-                    Size = UDim2.new(1/buttonCount - 0.05, 0, 1, -10),
-                    Position = UDim2.new((i-1)/buttonCount + (i-1)*0.05, 0, 0, 5),
-                    BackgroundColor3 = theme.accent,
-                    BackgroundTransparency = 0.5,
-                    Text = option.text,
-                    TextColor3 = theme.text,
-                    TextSize = 14,
-                    Font = Enum.Font.GothamMedium,
-                    ZIndex = 1003
-                })
-
-                create("UICorner", {
-                    Parent = button,
-                    CornerRadius = UDim.new(0.2, 0)
-                })
-
-                button.MouseButton1Click:Connect(function()
-                    if type(option.callback) == "function" then
-                        task.spawn(option.callback)
-                    end
-                    self:CloseNotification(notification)
-                end)
-            end
-        end
+    if options and type(options) == "table" then
+        notificationOptions.buttons = options
     end
 
-    if sound and type(sound) == "string" then
-        local soundInstance = Instance.new("Sound")
-        soundInstance.SoundId = sound
-        soundInstance.Parent = notification
-        soundInstance:Play()
-
-        soundInstance.Ended:Connect(function()
-            soundInstance:Destroy()
-        end)
-    end
-
-    table.insert(self.notifications, notification)
-    self:ManageNotifications()
-
-    notification.Position = UDim2.new(1, 0, 0, 0)
-    game:GetService("TweenService"):Create(
-        notification,
-        TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0, 0, 0, 0)}
-    ):Play()
-
-    task.delay(duration, function()
-        self:CloseNotification(notification)
-    end)
-
-    return notification
-end
-
-function AdonisEngine:ManageNotifications()
-    local maxVisible = 3
-
-    for i, notification in ipairs(self.notifications) do
-        if i > maxVisible then
-            notification.Visible = false
-        else
-            notification.Visible = true
-        end
-    end
-end
-
-function AdonisEngine:CloseNotification(notification)
-    if not notification or not notification.Parent then return end
-
-    game:GetService("TweenService"):Create(
-        notification,
-        TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(1, 0, 0, 0)}
-    ):Play()
-
-    task.delay(0.5, function()
-        for i, notif in ipairs(self.notifications) do
-            if notif == notification then
-                table.remove(self.notifications, i)
-                break
-            end
-        end
-
-        notification:Destroy()
-        self:ManageNotifications()
-    end)
+    return Notifications.show(self.gui, title, description, notifyType, notificationOptions)
 end
 
 function AdonisEngine:Destroy()
