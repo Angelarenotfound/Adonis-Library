@@ -3,16 +3,16 @@ AdonisEngine.__index = AdonisEngine
 
 local _instance = nil
 
--- Enhanced colors - more vibrant/saturated versions of the original colors
 local theme = {
-    background = Color3.fromRGB(13, 13, 22),  -- Slightly more saturated
-    surface = Color3.fromRGB(25, 25, 35),     -- More vibrant
-    accent = Color3.fromRGB(130, 105, 255),   -- Brighter purple
-    text = Color3.fromRGB(255, 255, 255),     -- Pure white for better contrast
-    divider = Color3.fromRGB(55, 55, 70),     -- More visible divider
-    error = Color3.fromRGB(255, 95, 95),      -- Brighter red
-    success = Color3.fromRGB(95, 255, 140),   -- More vibrant green
-    warning = Color3.fromRGB(255, 195, 0)     -- Brighter yellow
+    background = Color3.fromRGB(0, 0, 0),
+    surface = Color3.fromRGB(10, 10, 12),
+    accent = Color3.fromRGB(180, 30, 30),
+    text = Color3.fromRGB(230, 230, 230),
+    divider = Color3.fromRGB(30, 30, 35),
+    error = Color3.fromRGB(220, 40, 40),
+    success = Color3.fromRGB(40, 180, 80),
+    warning = Color3.fromRGB(220, 150, 30),
+    secondary = Color3.fromRGB(50, 50, 55)
 }
 
 local function create(className, props)
@@ -64,7 +64,6 @@ local function createRippleEffect(button, rippleColor)
     local mousePos = UserInputService:GetMouseLocation() - Vector2.new(button.AbsolutePosition.X, button.AbsolutePosition.Y)
     ripple.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
 
-    -- Larger ripple effect
     local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2.5
     local appearTween = createTween(ripple, {Size = UDim2.new(0, maxSize, 0, maxSize), BackgroundTransparency = 1}, 0.6)
     appearTween:Play()
@@ -90,8 +89,8 @@ end
 function Notifications.createContainer(mainGui)
     local container = Instance.new("Frame")
     container.Name = "NotificationsContainer"
-    container.Size = UDim2.new(0, 300, 1, -40)
-    container.Position = UDim2.new(1, -320, 0, 20)
+    container.Size = UDim2.new(0, 320, 1, -40)
+    container.Position = UDim2.new(1, -340, 0, 20)
     container.BackgroundTransparency = 1
     container.Parent = mainGui
 
@@ -147,7 +146,6 @@ function Notifications.show(mainGui, title, description, notificationType, optio
             notificationColor = theme.accent
         end
 
-        -- Increased notification height for larger animations
         local notificationHeight = self.options.height or (self.options.buttons and 140 or 100)
 
         self.frame = Instance.new("Frame")
@@ -172,10 +170,9 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         shadow.Parent = self.frame
 
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
+        corner.CornerRadius = UDim.new(0, 6)
         corner.Parent = self.frame
 
-        -- Animated border for notifications
         local borderFrame = Instance.new("Frame")
         borderFrame.Size = UDim2.new(1, 0, 1, 0)
         borderFrame.BackgroundTransparency = 1
@@ -185,19 +182,17 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         
         local borderUIStroke = Instance.new("UIStroke")
         borderUIStroke.Color = notificationColor
-        borderUIStroke.Thickness = 2
+        borderUIStroke.Thickness = 1.5
         borderUIStroke.Transparency = 0.2
         borderUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         borderUIStroke.Parent = borderFrame
         
         local borderCorner = Instance.new("UICorner")
-        borderCorner.CornerRadius = UDim.new(0, 8)
+        borderCorner.CornerRadius = UDim.new(0, 6)
         borderCorner.Parent = borderFrame
         
-        -- Animate the border
         spawn(function()
             while self.frame and self.frame.Parent do
-                -- Pulse animation
                 local pulseTween = TweenService:Create(
                     borderUIStroke,
                     TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
@@ -205,11 +200,10 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 )
                 pulseTween:Play()
                 
-                -- Glow effect
                 local colorTween = TweenService:Create(
                     borderUIStroke,
                     TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-                    {Color = notificationColor:Lerp(Color3.new(1, 1, 1), 0.3)}
+                    {Color = notificationColor:Lerp(Color3.new(1, 1, 1), 0.2)}
                 )
                 colorTween:Play()
                 
@@ -221,33 +215,34 @@ function Notifications.show(mainGui, title, description, notificationType, optio
             end
         end)
 
-        local topBar = Instance.new("Frame")
-        topBar.Size = UDim2.new(1, 0, 0, 8) -- Slightly taller top bar
-        topBar.BackgroundColor3 = notificationColor
-        topBar.BorderSizePixel = 0
-        topBar.Parent = self.frame
+        local leftAccent = Instance.new("Frame")
+        leftAccent.Size = UDim2.new(0, 3, 1, 0)
+        leftAccent.Position = UDim2.new(0, 0, 0, 0)
+        leftAccent.BackgroundColor3 = notificationColor
+        leftAccent.BorderSizePixel = 0
+        leftAccent.Parent = self.frame
 
-        local topCorner = Instance.new("UICorner")
-        topCorner.CornerRadius = UDim.new(0, 4)
-        topCorner.Parent = topBar
+        local leftCorner = Instance.new("UICorner")
+        leftCorner.CornerRadius = UDim.new(0, 6)
+        leftCorner.Parent = leftAccent
 
         local titleLabel = Instance.new("TextLabel")
-        titleLabel.Size = UDim2.new(1, -60, 0, 28) -- Taller title
-        titleLabel.Position = UDim2.new(0, 15, 0, 18) -- Adjusted position
+        titleLabel.Size = UDim2.new(1, -60, 0, 28)
+        titleLabel.Position = UDim2.new(0, 15, 0, 15)
         titleLabel.BackgroundTransparency = 1
-        titleLabel.Font = Enum.Font.GothamBold -- Bolder font
-        titleLabel.TextSize = 18 -- Larger text
+        titleLabel.Font = Enum.Font.SourceSansSemibold
+        titleLabel.TextSize = 18
         titleLabel.TextColor3 = theme.text
         titleLabel.TextXAlignment = Enum.TextXAlignment.Left
         titleLabel.Text = self.title
         titleLabel.Parent = self.frame
 
         local descriptionLabel = Instance.new("TextLabel")
-        descriptionLabel.Size = UDim2.new(1, -30, 0, 50) -- Taller description
-        descriptionLabel.Position = UDim2.new(0, 15, 0, 46) -- Adjusted position
+        descriptionLabel.Size = UDim2.new(1, -30, 0, 50)
+        descriptionLabel.Position = UDim2.new(0, 15, 0, 43)
         descriptionLabel.BackgroundTransparency = 1
-        descriptionLabel.Font = Enum.Font.Gotham
-        descriptionLabel.TextSize = 15 -- Larger text
+        descriptionLabel.Font = Enum.Font.SourceSans
+        descriptionLabel.TextSize = 15
         descriptionLabel.TextColor3 = theme.text
         descriptionLabel.TextXAlignment = Enum.TextXAlignment.Left
         descriptionLabel.TextYAlignment = Enum.TextYAlignment.Top
@@ -257,8 +252,8 @@ function Notifications.show(mainGui, title, description, notificationType, optio
 
         if self.options.buttons then
             local buttonContainer = Instance.new("Frame")
-            buttonContainer.Size = UDim2.new(1, -30, 0, 35) -- Taller buttons
-            buttonContainer.Position = UDim2.new(0, 15, 1, -45) -- Adjusted position
+            buttonContainer.Size = UDim2.new(1, -30, 0, 35)
+            buttonContainer.Position = UDim2.new(0, 15, 1, -45)
             buttonContainer.BackgroundTransparency = 1
             buttonContainer.Parent = self.frame
 
@@ -271,10 +266,10 @@ function Notifications.show(mainGui, title, description, notificationType, optio
 
             for i, buttonInfo in ipairs(self.options.buttons) do
                 local button = Instance.new("TextButton")
-                button.Size = UDim2.new(0, 90, 1, 0) -- Wider buttons
-                button.BackgroundColor3 = i == 1 and notificationColor or theme.background
+                button.Size = UDim2.new(0, 90, 1, 0)
+                button.BackgroundColor3 = i == 1 and notificationColor or theme.secondary
                 button.BorderSizePixel = 0
-                button.Font = Enum.Font.GothamBold -- Bolder font
+                button.Font = Enum.Font.SourceSansSemibold
                 button.TextSize = 14
                 button.TextColor3 = theme.text
                 button.Text = buttonInfo.text
@@ -284,7 +279,7 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 button.Parent = buttonContainer
 
                 local buttonCorner = Instance.new("UICorner")
-                buttonCorner.CornerRadius = UDim.new(0, 6) -- More rounded corners
+                buttonCorner.CornerRadius = UDim.new(0, 4)
                 buttonCorner.Parent = button
 
                 local buttonShadow = Instance.new("ImageLabel")
@@ -294,29 +289,28 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 buttonShadow.BackgroundTransparency = 1
                 buttonShadow.Image = "rbxassetid://6014261993"
                 buttonShadow.ImageColor3 = Color3.new(0, 0, 0)
-                buttonShadow.ImageTransparency = 0.7 -- Less transparent shadow
+                buttonShadow.ImageTransparency = 0.7
                 buttonShadow.ScaleType = Enum.ScaleType.Slice
                 buttonShadow.SliceCenter = Rect.new(49, 49, 450, 450)
                 buttonShadow.ZIndex = button.ZIndex - 1
                 buttonShadow.Parent = button
 
-                -- Enhanced hover effect
                 button.MouseEnter:Connect(function()
                     createTween(button, {
                         BackgroundColor3 = i == 1 and 
                             Color3.new(
-                                math.min(notificationColor.R + 0.15, 1), -- More dramatic color change
+                                math.min(notificationColor.R + 0.15, 1),
                                 math.min(notificationColor.G + 0.15, 1),
                                 math.min(notificationColor.B + 0.15, 1)
-                            ) or theme.accent,
-                        Size = UDim2.new(0, 95, 1, 0) -- Grow slightly on hover
+                            ) or theme.accent:Lerp(theme.secondary, 0.5),
+                        Size = UDim2.new(0, 95, 1, 0)
                     }, 0.2):Play()
                 end)
 
                 button.MouseLeave:Connect(function()
                     createTween(button, {
-                        BackgroundColor3 = i == 1 and notificationColor or theme.background,
-                        Size = UDim2.new(0, 90, 1, 0) -- Return to original size
+                        BackgroundColor3 = i == 1 and notificationColor or theme.secondary,
+                        Size = UDim2.new(0, 90, 1, 0)
                     }, 0.2):Play()
                 end)
 
@@ -331,33 +325,26 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         end
 
         local closeButton = Instance.new("TextButton")
-        closeButton.Size = UDim2.new(0, 28, 0, 28) -- Larger close button
+        closeButton.Size = UDim2.new(0, 28, 0, 28)
         closeButton.Position = UDim2.new(1, -35, 0, 15)
-        closeButton.BackgroundTransparency = 0.9 -- Slight background
-        closeButton.BackgroundColor3 = theme.error
-        closeButton.Font = Enum.Font.GothamBold
+        closeButton.BackgroundTransparency = 1
+        closeButton.Font = Enum.Font.SourceSansBold
         closeButton.TextSize = 16
         closeButton.TextColor3 = theme.text
         closeButton.Text = "✕"
         closeButton.Parent = self.frame
-        
-        local closeCorner = Instance.new("UICorner")
-        closeCorner.CornerRadius = UDim.new(1, 0) -- Circular close button
-        closeCorner.Parent = closeButton
 
         closeButton.MouseEnter:Connect(function()
             createTween(closeButton, {
-                TextColor3 = Color3.new(1, 1, 1),
-                BackgroundTransparency = 0.5,
-                BackgroundColor3 = theme.error
+                TextColor3 = theme.error,
+                TextSize = 18
             }, 0.2):Play()
         end)
 
         closeButton.MouseLeave:Connect(function()
             createTween(closeButton, {
                 TextColor3 = theme.text,
-                BackgroundTransparency = 0.9,
-                BackgroundColor3 = theme.error
+                TextSize = 16
             }, 0.2):Play()
         end)
 
@@ -376,18 +363,25 @@ function Notifications.show(mainGui, title, description, notificationType, optio
 
         self.isVisible = true
         
-        -- Enhanced entrance animation
-        local enterTween = createTween(
-            self.frame,
-            {Position = UDim2.new(0, 0, 0, 0)},
-            0.4,
-            Enum.EasingStyle.Back,
-            Enum.EasingDirection.Out
-        )
-        enterTween:Play()
+        self.frame.BackgroundTransparency = 1
+        shadow.ImageTransparency = 1
         
-        -- Add a slight bounce effect
-        enterTween.Completed:Connect(function()
+        local appearTween = TweenService:Create(
+            self.frame,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}
+        )
+        
+        local shadowTween = TweenService:Create(
+            shadow,
+            TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+            {ImageTransparency = 0.5}
+        )
+        
+        appearTween:Play()
+        shadowTween:Play()
+        
+        appearTween.Completed:Connect(function()
             if self.frame and self.frame.Parent then
                 local bounceTween = createTween(
                     self.frame,
@@ -427,10 +421,9 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         self.isDestroyed = true
 
         if self.frame then
-            -- Enhanced exit animation
             local exitTween = createTween(
                 self.frame,
-                {Position = UDim2.new(1, 300, 0, 0), Rotation = 2}, -- Slight rotation for style
+                {Position = UDim2.new(1, 300, 0, 0), BackgroundTransparency = 1, Rotation = 2},
                 0.4,
                 Enum.EasingStyle.Back,
                 Enum.EasingDirection.In
@@ -487,18 +480,24 @@ function AdonisEngine.Start(title, iconId, DevMode)
         Parent = self.gui,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0.65, 0, 0.75, 0),
+        Size = UDim2.new(0.78, 0, 0.9, 0),
         BackgroundColor3 = theme.background,
-        BackgroundTransparency = 0, -- More solid background
+        BackgroundTransparency = 0,
         ClipsDescendants = true
     })
 
     create("UICorner", {
         Parent = self.mainFrame,
-        CornerRadius = UDim.new(0.08, 0)
+        CornerRadius = UDim.new(0.02, 0)
     })
     
-    -- Add a subtle glow effect to the main frame
+    local mainBorder = create("UIStroke", {
+        Parent = self.mainFrame,
+        Color = theme.divider,
+        Thickness = 1,
+        Transparency = 0.5
+    })
+    
     local glow = create("ImageLabel", {
         Parent = self.mainFrame,
         Size = UDim2.new(1, 60, 1, 60),
@@ -522,10 +521,9 @@ function AdonisEngine.Start(title, iconId, DevMode)
     self.mainFrame.Position = UDim2.new(0.5, 0, -1.5, 0)
     self.mainFrame.Visible = true
 
-    -- Enhanced entrance animation
     local enterAnim = game:GetService("TweenService"):Create(
         self.mainFrame,
-        TweenInfo.new(1.2, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out, 0, false, 0),
+        TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out, 0, false, 0),
         {Position = UDim2.new(0.5, 0, 0.5, 0)}
     )
     enterAnim:Play()
@@ -543,7 +541,7 @@ end
 function AdonisEngine:CreateTopBar(title, iconId)
     self.topBar = create("Frame", {
         Parent = self.mainFrame,
-        Size = UDim2.new(1, 0, 0.075, 0),
+        Size = UDim2.new(1, 0, 0.06, 0),
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundColor3 = theme.surface,
         BorderSizePixel = 0
@@ -551,10 +549,16 @@ function AdonisEngine:CreateTopBar(title, iconId)
 
     create("UICorner", {
         Parent = self.topBar,
-        CornerRadius = UDim.new(0.08, 0)
+        CornerRadius = UDim.new(0.02, 0)
     })
     
-    -- Add a subtle gradient to the top bar
+    local topBarBorder = create("UIStroke", {
+        Parent = self.topBar,
+        Color = theme.divider,
+        Thickness = 1,
+        Transparency = 0.7
+    })
+    
     local gradient = create("UIGradient", {
         Parent = self.topBar,
         Color = ColorSequence.new({
@@ -566,8 +570,8 @@ function AdonisEngine:CreateTopBar(title, iconId)
 
     self.icon = create("ImageLabel", {
         Parent = self.topBar,
-        Size = UDim2.new(0, 36, 0, 36), -- Larger icon
-        Position = UDim2.new(0.015, 0, 0.5, -18),
+        Size = UDim2.new(0, 24, 0, 24),
+        Position = UDim2.new(0.015, 0, 0.5, -12),
         BackgroundTransparency = 1,
         Image = "rbxassetid://"..tostring(iconId),
         ImageColor3 = theme.accent,
@@ -580,10 +584,9 @@ function AdonisEngine:CreateTopBar(title, iconId)
         CornerRadius = UDim.new(1, 0)
     })
     
-    -- Add a glow effect to the icon
     local iconGlow = create("ImageLabel", {
         Parent = self.icon,
-        Size = UDim2.new(1, 12, 1, 12),
+        Size = UDim2.new(1, 8, 1, 8),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
@@ -595,13 +598,12 @@ function AdonisEngine:CreateTopBar(title, iconId)
         ZIndex = self.icon.ZIndex - 1
     })
     
-    -- Animate the icon glow
     spawn(function()
         while self.gui and self.gui.Parent do
             local glowTween = TweenService:Create(
                 iconGlow,
                 TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-                {ImageTransparency = 0.4, Size = UDim2.new(1, 20, 1, 20)}
+                {ImageTransparency = 0.5, Size = UDim2.new(1, 12, 1, 12)}
             )
             glowTween:Play()
             wait(4)
@@ -615,55 +617,78 @@ function AdonisEngine:CreateTopBar(title, iconId)
     self.title = create("TextLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0.8, 0, 1, 0),
-        Position = UDim2.new(0.08, 0, 0, 0),
+        Position = UDim2.new(0.06, 0, 0, 0),
         BackgroundTransparency = 1,
         Text = string.upper(tostring(title)),
         TextColor3 = theme.text,
-        TextSize = 20, -- Larger text
-        Font = Enum.Font.GothamBold, -- Bolder font
+        TextSize = 16,
+        Font = Enum.Font.SourceSansSemibold,
         TextXAlignment = Enum.TextXAlignment.Left,
-        TextTransparency = 0 -- Fully opaque text
+        TextTransparency = 0
     })
 
     self.closeButton = create("TextButton", {
         Parent = self.topBar,
-        Size = UDim2.new(0, 36, 0, 36), -- Larger close button
-        Position = UDim2.new(1, -45, 0.5, -18),
-        BackgroundTransparency = 0.8, -- Slight background
-        BackgroundColor3 = theme.error,
-        Text = "X",
+        Size = UDim2.new(0, 24, 0, 24),
+        Position = UDim2.new(1, -30, 0.5, -12),
+        BackgroundTransparency = 1,
+        Text = "✕",
         TextColor3 = theme.text,
-        TextSize = 20,
-        Font = Enum.Font.GothamBold
-    })
-    
-    create("UICorner", {
-        Parent = self.closeButton,
-        CornerRadius = UDim.new(1, 0) -- Circular close button
+        TextSize = 16,
+        Font = Enum.Font.SourceSansBold
     })
 
-    -- Enhanced close button hover effects
     self.closeButton.MouseEnter:Connect(function()
         createTween(self.closeButton, {
-            BackgroundTransparency = 0.5,
-            TextColor3 = Color3.new(1, 1, 1),
-            Size = UDim2.new(0, 40, 0, 40),
-            Position = UDim2.new(1, -47, 0.5, -20)
+            TextColor3 = theme.error,
+            TextSize = 18
         }, 0.2):Play()
     end)
 
     self.closeButton.MouseLeave:Connect(function()
         createTween(self.closeButton, {
-            BackgroundTransparency = 0.8,
             TextColor3 = theme.text,
-            Size = UDim2.new(0, 36, 0, 36),
-            Position = UDim2.new(1, -45, 0.5, -18)
+            TextSize = 16
         }, 0.2):Play()
     end)
 
     self.closeButton.MouseButton1Click:Connect(function()
         createRippleEffect(self.closeButton, theme.error)
         self:ShowConfirmationModal()
+    end)
+    
+    local dragInput
+    local dragStart
+    local startPos
+    
+    local function updateDrag(input)
+        local delta = input.Position - dragStart
+        self.mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    self.topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragStart = input.Position
+            startPos = self.mainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragInput = nil
+                end
+            end)
+        end
+    end)
+    
+    self.topBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragStart then
+            updateDrag(input)
+        end
     end)
 end
 
@@ -672,7 +697,7 @@ function AdonisEngine:ShowConfirmationModal()
 
     self.modal = create("Frame", {
         Parent = self.gui,
-        Size = UDim2.new(0.4, 0, 0.25, 0),
+        Size = UDim2.new(0.35, 0, 0.2, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         BackgroundColor3 = theme.surface,
@@ -681,24 +706,22 @@ function AdonisEngine:ShowConfirmationModal()
 
     create("UICorner", {
         Parent = self.modal,
-        CornerRadius = UDim.new(0.08, 0)
+        CornerRadius = UDim.new(0.02, 0)
     })
 
-    -- Enhanced border with animation
     local modalBorder = create("UIStroke", {
         Parent = self.modal,
         Color = theme.accent,
-        Thickness = 3,
+        Thickness = 1.5,
         Transparency = 0.2
     })
     
-    -- Animate the border
     spawn(function()
         while self.modal and self.modal.Parent do
             local borderTween = TweenService:Create(
                 modalBorder,
                 TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-                {Transparency = 0.6, Color = theme.accent:Lerp(Color3.new(1, 1, 1), 0.3)}
+                {Transparency = 0.6, Color = theme.accent:Lerp(Color3.new(1, 1, 1), 0.2)}
             )
             borderTween:Play()
             wait(4)
@@ -709,10 +732,9 @@ function AdonisEngine:ShowConfirmationModal()
         end
     end)
     
-    -- Add a shadow to the modal
     local modalShadow = create("ImageLabel", {
         Parent = self.modal,
-        Size = UDim2.new(1, 60, 1, 60),
+        Size = UDim2.new(1, 40, 1, 40),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
@@ -731,8 +753,8 @@ function AdonisEngine:ShowConfirmationModal()
         BackgroundTransparency = 1,
         Text = "¿Are you sure you want to close the Gui?",
         TextColor3 = theme.text,
-        TextSize = 18, -- Larger text
-        Font = Enum.Font.GothamBold, -- Bolder font
+        TextSize = 16,
+        Font = Enum.Font.SourceSansSemibold,
         TextWrapped = true
     })
 
@@ -745,25 +767,24 @@ function AdonisEngine:ShowConfirmationModal()
 
     local acceptButton = create("TextButton", {
         Parent = buttonContainer,
-        Size = UDim2.new(0.45, 0, 0.8, 0), -- Less tall, more rectangular
-        Position = UDim2.new(0, 0, 0.1, 0), -- Centered vertically
-        BackgroundColor3 = Color3.fromRGB(80, 200, 80), -- Brighter green
+        Size = UDim2.new(0.45, 0, 0.7, 0),
+        Position = UDim2.new(0, 0, 0.15, 0),
+        BackgroundColor3 = theme.accent,
         Text = "ACCEPT",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 16, -- Larger text
-        Font = Enum.Font.GothamBold,
-        ClipsDescendants = true -- For ripple effect
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.SourceSansSemibold,
+        ClipsDescendants = true
     })
 
     create("UICorner", {
         Parent = acceptButton,
-        CornerRadius = UDim.new(0.2, 0) -- More rounded corners
+        CornerRadius = UDim.new(0.1, 0)
     })
     
-    -- Add shadow to buttons
     local acceptShadow = create("ImageLabel", {
         Parent = acceptButton,
-        Size = UDim2.new(1, 10, 1, 10),
+        Size = UDim2.new(1, 8, 1, 8),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
@@ -777,25 +798,24 @@ function AdonisEngine:ShowConfirmationModal()
 
     local declineButton = create("TextButton", {
         Parent = buttonContainer,
-        Size = UDim2.new(0.45, 0, 0.8, 0), -- Less tall, more rectangular
-        Position = UDim2.new(0.55, 0, 0.1, 0), -- Centered vertically
-        BackgroundColor3 = Color3.fromRGB(200, 70, 70), -- Brighter red
+        Size = UDim2.new(0.45, 0, 0.7, 0),
+        Position = UDim2.new(0.55, 0, 0.15, 0),
+        BackgroundColor3 = theme.secondary,
         Text = "DECLINE",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 16, -- Larger text
-        Font = Enum.Font.GothamBold,
-        ClipsDescendants = true -- For ripple effect
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.SourceSansSemibold,
+        ClipsDescendants = true
     })
 
     create("UICorner", {
         Parent = declineButton,
-        CornerRadius = UDim.new(0.2, 0) -- More rounded corners
+        CornerRadius = UDim.new(0.1, 0)
     })
     
-    -- Add shadow to buttons
     local declineShadow = create("ImageLabel", {
         Parent = declineButton,
-        Size = UDim2.new(1, 10, 1, 10),
+        Size = UDim2.new(1, 8, 1, 8),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
@@ -807,32 +827,35 @@ function AdonisEngine:ShowConfirmationModal()
         ZIndex = declineButton.ZIndex - 1
     })
     
-    -- Enhanced button hover effects
     acceptButton.MouseEnter:Connect(function()
         createTween(acceptButton, {
-            BackgroundColor3 = Color3.fromRGB(100, 220, 100),
-            Size = UDim2.new(0.46, 0, 0.85, 0)
+            BackgroundColor3 = theme.accent:Lerp(Color3.new(1, 1, 1), 0.2),
+            Size = UDim2.new(0.46, 0, 0.75, 0),
+            Position = UDim2.new(0, 0, 0.125, 0)
         }, 0.2):Play()
     end)
     
     acceptButton.MouseLeave:Connect(function()
         createTween(acceptButton, {
-            BackgroundColor3 = Color3.fromRGB(80, 200, 80),
-            Size = UDim2.new(0.45, 0, 0.8, 0)
+            BackgroundColor3 = theme.accent,
+            Size = UDim2.new(0.45, 0, 0.7, 0),
+            Position = UDim2.new(0, 0, 0.15, 0)
         }, 0.2):Play()
     end)
     
     declineButton.MouseEnter:Connect(function()
         createTween(declineButton, {
-            BackgroundColor3 = Color3.fromRGB(220, 80, 80),
-            Size = UDim2.new(0.46, 0, 0.85, 0)
+            BackgroundColor3 = theme.error:Lerp(theme.secondary, 0.7),
+            Size = UDim2.new(0.46, 0, 0.75, 0),
+            Position = UDim2.new(0.54, 0, 0.125, 0)
         }, 0.2):Play()
     end)
     
     declineButton.MouseLeave:Connect(function()
         createTween(declineButton, {
-            BackgroundColor3 = Color3.fromRGB(200, 70, 70),
-            Size = UDim2.new(0.45, 0, 0.8, 0)
+            BackgroundColor3 = theme.secondary,
+            Size = UDim2.new(0.45, 0, 0.7, 0),
+            Position = UDim2.new(0.55, 0, 0.15, 0)
         }, 0.2):Play()
     end)
 
@@ -847,7 +870,6 @@ function AdonisEngine:ShowConfirmationModal()
         self.modal = nil
     end)
     
-    -- Animate modal entrance
     self.modal.Size = UDim2.new(0, 0, 0, 0)
     self.modal.BackgroundTransparency = 1
     modalShadow.ImageTransparency = 1
@@ -855,7 +877,7 @@ function AdonisEngine:ShowConfirmationModal()
     local modalEnterTween = TweenService:Create(
         self.modal,
         TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Size = UDim2.new(0.4, 0, 0.25, 0), BackgroundTransparency = 0}
+        {Size = UDim2.new(0.35, 0, 0.2, 0), BackgroundTransparency = 0}
     )
     
     local shadowEnterTween = TweenService:Create(
@@ -871,16 +893,16 @@ end
 function AdonisEngine:CreateContentArea()
     self.contentFrame = create("Frame", {
         Parent = self.mainFrame,
-        Size = UDim2.new(1, -20, 0.9, -15),
-        Position = UDim2.new(0, 10, 0.075, 10),
+        Size = UDim2.new(1, -20, 0.93, -15),
+        Position = UDim2.new(0, 10, 0.06, 10),
         BackgroundTransparency = 1
     })
 
     self.leftPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0.3, -5, 1, 0),
+        Size = UDim2.new(0.25, -5, 1, 0),
         BackgroundColor3 = theme.surface,
-        ScrollBarThickness = 4,
+        ScrollBarThickness = 3,
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollingDirection = Enum.ScrollingDirection.Y
@@ -888,15 +910,22 @@ function AdonisEngine:CreateContentArea()
 
     create("UICorner", {
         Parent = self.leftPanel,
-        CornerRadius = UDim.new(0.06, 0)
+        CornerRadius = UDim.new(0.02, 0)
+    })
+    
+    create("UIStroke", {
+        Parent = self.leftPanel,
+        Color = theme.divider,
+        Thickness = 1,
+        Transparency = 0.8
     })
 
     self.rightPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0.7, -5, 1, 0),
-        Position = UDim2.new(0.3, 5, 0, 0),
+        Size = UDim2.new(0.75, -5, 1, 0),
+        Position = UDim2.new(0.25, 5, 0, 0),
         BackgroundColor3 = theme.surface,
-        ScrollBarThickness = 4,
+        ScrollBarThickness = 3,
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollingDirection = Enum.ScrollingDirection.Y
@@ -904,10 +933,16 @@ function AdonisEngine:CreateContentArea()
 
     create("UICorner", {
         Parent = self.rightPanel,
-        CornerRadius = UDim.new(0.06, 0)
+        CornerRadius = UDim.new(0.02, 0)
     })
     
-    -- Add subtle gradients to panels
+    create("UIStroke", {
+        Parent = self.rightPanel,
+        Color = theme.divider,
+        Thickness = 1,
+        Transparency = 0.8
+    })
+    
     local leftGradient = create("UIGradient", {
         Parent = self.leftPanel,
         Color = ColorSequence.new({
@@ -926,43 +961,27 @@ function AdonisEngine:CreateContentArea()
         Rotation = 90
     })
 
-    -- Enhanced divider with glow
     local divider = create("Frame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0, 2, 1, 0), -- Slightly thicker
-        Position = UDim2.new(0.3, 0, 0, 0),
+        Size = UDim2.new(0, 1, 1, 0),
+        Position = UDim2.new(0.25, 0, 0, 0),
         BackgroundColor3 = theme.divider,
         BorderSizePixel = 0
-    })
-    
-    -- Add glow to divider
-    local dividerGlow = create("ImageLabel", {
-        Parent = divider,
-        Size = UDim2.new(1, 10, 1, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://6014261993",
-        ImageColor3 = theme.accent,
-        ImageTransparency = 0.8,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(49, 49, 450, 450),
-        ZIndex = divider.ZIndex - 1
     })
 
     create("UIListLayout", {
         Parent = self.leftPanel,
-        Padding = UDim.new(0, 8), -- More padding
+        Padding = UDim.new(0, 6),
         SortOrder = Enum.SortOrder.LayoutOrder,
         HorizontalAlignment = Enum.HorizontalAlignment.Center
     })
 
     create("UIPadding", {
         Parent = self.leftPanel,
-        PaddingTop = UDim.new(0, 12),
-        PaddingBottom = UDim.new(0, 12),
-        PaddingLeft = UDim.new(0, 12),
-        PaddingRight = UDim.new(0, 12)
+        PaddingTop = UDim.new(0, 10),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10)
     })
 end
 
@@ -978,26 +997,32 @@ function AdonisEngine:Section(name)
 
     local sectionButton = create("TextButton", {
         Parent = self.leftPanel,
-        Size = UDim2.new(1, 0, 0, 32), -- Less tall, more rectangular
+        Size = UDim2.new(1, 0, 0, 26),
         BackgroundColor3 = theme.accent,
-        BackgroundTransparency = 0.7, -- More visible
+        BackgroundTransparency = 0.8,
         Text = name,
         TextColor3 = theme.text,
-        TextSize = 16,
-        Font = Enum.Font.GothamSemibold,
+        TextSize = 14,
+        Font = Enum.Font.SourceSansSemibold,
         LayoutOrder = #self.sections + 1,
-        ClipsDescendants = true -- For ripple effect
+        ClipsDescendants = true
     })
 
     create("UICorner", {
         Parent = sectionButton,
-        CornerRadius = UDim.new(0.15, 0) -- Less rounded
+        CornerRadius = UDim.new(0.1, 0)
     })
     
-    -- Add a subtle shadow
+    create("UIStroke", {
+        Parent = sectionButton,
+        Color = theme.accent,
+        Thickness = 1,
+        Transparency = 0.8
+    })
+    
     local buttonShadow = create("ImageLabel", {
         Parent = sectionButton,
-        Size = UDim2.new(1, 10, 1, 10),
+        Size = UDim2.new(1, 6, 1, 6),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
@@ -1019,17 +1044,17 @@ function AdonisEngine:Section(name)
 
     create("UIListLayout", {
         Parent = sectionContainer,
-        Padding = UDim.new(0, 10), -- More padding
+        Padding = UDim.new(0, 8),
         SortOrder = Enum.SortOrder.LayoutOrder,
         HorizontalAlignment = Enum.HorizontalAlignment.Center
     })
 
     create("UIPadding", {
         Parent = sectionContainer,
-        PaddingTop = UDim.new(0, 12),
-        PaddingBottom = UDim.new(0, 12),
-        PaddingLeft = UDim.new(0, 12),
-        PaddingRight = UDim.new(0, 12)
+        PaddingTop = UDim.new(0, 10),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10)
     })
 
     local section = {
@@ -1041,20 +1066,17 @@ function AdonisEngine:Section(name)
 
     table.insert(self.sections, section)
     
-    -- Enhanced button hover effects
     sectionButton.MouseEnter:Connect(function()
         createTween(sectionButton, {
-            BackgroundTransparency = 0.4,
-            TextSize = 17, -- Grow text slightly
-            Size = UDim2.new(1, 0, 0, 34) -- Grow slightly
+            BackgroundTransparency = 0.6,
+            TextSize = 15
         }, 0.2):Play()
     end)
     
     sectionButton.MouseLeave:Connect(function()
         createTween(sectionButton, {
-            BackgroundTransparency = sectionContainer.Visible and 0.4 or 0.7,
-            TextSize = 16,
-            Size = UDim2.new(1, 0, 0, 32)
+            BackgroundTransparency = sectionContainer.Visible and 0.6 or 0.8,
+            TextSize = 14
         }, 0.2):Play()
     end)
 
@@ -1063,11 +1085,11 @@ function AdonisEngine:Section(name)
         
         for _, sec in ipairs(self.sections) do
             sec.container.Visible = false
-            createTween(sec.button, {BackgroundTransparency = 0.7}, 0.2):Play()
+            createTween(sec.button, {BackgroundTransparency = 0.8}, 0.2):Play()
         end
 
         sectionContainer.Visible = true
-        createTween(sectionButton, {BackgroundTransparency = 0.4}, 0.2):Play()
+        createTween(sectionButton, {BackgroundTransparency = 0.6}, 0.2):Play()
     end)
 
     if self.DevMode then
@@ -1108,34 +1130,32 @@ function AdonisEngine:Button(text, section, callback)
 
     local button = create("TextButton", {
         Parent = section.container,
-        Size = UDim2.new(1, 0, 0, 36), -- Less tall, more rectangular
-        BackgroundColor3 = theme.surface,
-        BackgroundTransparency = 0.4, -- More visible
+        Size = UDim2.new(1, 0, 0, 32),
+        BackgroundColor3 = theme.secondary,
+        BackgroundTransparency = 0.4,
         Text = text,
         TextColor3 = theme.text,
-        TextSize = 15, -- Larger text
-        Font = Enum.Font.GothamBold, -- Bolder font
+        TextSize = 14,
+        Font = Enum.Font.SourceSansSemibold,
         LayoutOrder = #section.elements + 1,
-        ClipsDescendants = true -- For ripple effect
+        ClipsDescendants = true
     })
 
     create("UICorner", {
         Parent = button,
-        CornerRadius = UDim.new(0.12, 0) -- Less rounded
+        CornerRadius = UDim.new(0.1, 0)
     })
 
-    -- Enhanced border with glow
     local buttonStroke = create("UIStroke", {
         Parent = button,
         Color = theme.accent,
-        Transparency = 0.6,
-        Thickness = 1.5 -- Thicker border
+        Transparency = 0.7,
+        Thickness = 1
     })
     
-    -- Add a subtle shadow
     local buttonShadow = create("ImageLabel", {
         Parent = button,
-        Size = UDim2.new(1, 10, 1, 10),
+        Size = UDim2.new(1, 6, 1, 6),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
@@ -1147,28 +1167,27 @@ function AdonisEngine:Button(text, section, callback)
         ZIndex = button.ZIndex - 1
     })
     
-    -- Enhanced hover effects
     button.MouseEnter:Connect(function()
         createTween(button, {
             BackgroundTransparency = 0.2,
-            Size = UDim2.new(1, 0, 0, 38) -- Grow slightly
+            TextSize = 15
         }, 0.2):Play()
         
         createTween(buttonStroke, {
-            Transparency = 0.3,
-            Thickness = 2
+            Transparency = 0.4,
+            Thickness = 1.5
         }, 0.2):Play()
     end)
 
     button.MouseLeave:Connect(function()
         createTween(button, {
             BackgroundTransparency = 0.4,
-            Size = UDim2.new(1, 0, 0, 36)
+            TextSize = 14
         }, 0.2):Play()
         
         createTween(buttonStroke, {
-            Transparency = 0.6,
-            Thickness = 1.5
+            Transparency = 0.7,
+            Thickness = 1
         }, 0.2):Play()
     end)
 
@@ -1176,14 +1195,12 @@ function AdonisEngine:Button(text, section, callback)
         createRippleEffect(button, Color3.fromRGB(255, 255, 255))
         
         createTween(button, {
-            BackgroundTransparency = 0.1,
-            Size = UDim2.new(1, 0, 0, 34) -- Shrink slightly on click
+            BackgroundTransparency = 0.1
         }, 0.1):Play()
 
         task.delay(0.1, function()
             createTween(button, {
-                BackgroundTransparency = 0.4,
-                Size = UDim2.new(1, 0, 0, 36)
+                BackgroundTransparency = 0.4
             }, 0.1):Play()
         end)
 
@@ -1237,7 +1254,6 @@ end
 
 function AdonisEngine:Destroy()
     if self.gui then
-        -- Add a nice exit animation
         local exitTween = TweenService:Create(
             self.mainFrame,
             TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.In),
