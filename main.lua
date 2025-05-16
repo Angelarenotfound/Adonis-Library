@@ -18,7 +18,11 @@ local theme = {
 local function create(className, props)
     local instance = Instance.new(className)
     for prop, val in pairs(props) do
-        instance[prop] = val
+        if prop == "Name" and type(val) == "table" then
+            instance[prop] = tostring(val)
+        else
+            instance[prop] = val
+        end
     end
     return instance
 end
