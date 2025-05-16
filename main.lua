@@ -518,7 +518,7 @@ function AdonisEngine.Start(title, options)
     self.DevMode = options.DevMode or false
 
     self.gui = create("ScreenGui", {
-        Name = title or "WindUI Library",
+        Name = title or "Adonis Library",
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
         DisplayOrder = 999
@@ -528,7 +528,7 @@ function AdonisEngine.Start(title, options)
         Parent = self.gui,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0.7, 0, 0.7, 0),
+        Size = UDim2.new(0.55, 0, 0.6, 0),
         BackgroundColor3 = theme.background,
         BackgroundTransparency = 0,
         ClipsDescendants = true
@@ -547,7 +547,7 @@ function AdonisEngine.Start(title, options)
     })
 
     -- Create top bar with title and controls
-    self:CreateTopBar(title or "WindUI Library")
+    self:CreateTopBar(title or "Adonis Library")
     self:CreateContentArea()
 
     -- Animation for opening
@@ -565,7 +565,7 @@ function AdonisEngine.Start(title, options)
     self.notificationContainer = Notifications.createContainer(self.gui)
 
     if self.DevMode then
-        self:Notify("DevMode Enabled", "WindUI is running in developer mode", "success", 5)
+        self:Notify("DevMode Enabled", "Adonis Library is running in developer mode", "success", 5)
     end
 
     return self
