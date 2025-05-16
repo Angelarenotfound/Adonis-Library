@@ -55,18 +55,18 @@ local function createRippleEffect(button, rippleColor)
     ripple.AnchorPoint = Vector2.new(0.5, 0.5)
     ripple.Size = UDim2.new(0, 0, 0, 0)
     ripple.Parent = button
-    
+
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(1, 0)
     corner.Parent = ripple
-    
+
     local mousePos = UserInputService:GetMouseLocation() - Vector2.new(button.AbsolutePosition.X, button.AbsolutePosition.Y)
     ripple.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
-    
+
     local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2
     local appearTween = createTween(ripple, {Size = UDim2.new(0, maxSize, 0, maxSize), BackgroundTransparency = 1}, 0.5)
     appearTween:Play()
-    
+
     appearTween.Completed:Connect(function()
         ripple:Destroy()
     end)
@@ -86,19 +86,21 @@ local function adjustForMobile(size)
 end
 
 function Notifications.createContainer(mainGui)
-    mainGui.NotificationsContainer = Instance.new("Frame")
-    mainGui.NotificationsContainer.Name = "NotificationsContainer"
-    mainGui.NotificationsContainer.Size = UDim2.new(0, 300, 1, -40)
-    mainGui.NotificationsContainer.Position = UDim2.new(1, -320, 0, 20)
-    mainGui.NotificationsContainer.BackgroundTransparency = 1
-    mainGui.NotificationsContainer.Parent = mainGui
-
+    local container = Instance.new("Frame")
+    container.Name = "NotificationsContainer"
+    container.Size = UDim2.new(0, 300, 1, -40)
+    container.Position = UDim2.new(1, -320, 0, 20)
+    container.BackgroundTransparency = 1
+    container.Parent = mainGui
+    
     local listLayout = Instance.new("UIListLayout")
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
     listLayout.Padding = UDim.new(0, 10)
     listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-    listLayout.Parent = mainGui.NotificationsContainer
+    listLayout.Parent = container
+    
+    return container
 end
 
 function Notifications.processQueue()
@@ -112,8 +114,14 @@ end
 function Notifications.show(mainGui, title, description, notificationType, options)
     options = options or {}
     
+    local notificationContainer = mainGui:FindFirstChild("NotificationsContainer")
+    if not notificationContainer then
+        notificationContainer = Notifications.createContainer(mainGui)
+    end
+
     local notification = {
         mainGui = mainGui,
+        container = notificationContainer,
         title = title,
         description = description,
         notificationType = notificationType,
@@ -122,10 +130,10 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         isVisible = false,
         isDestroyed = false
     }
-    
+
     function notification:Show()
         if self.isDestroyed then return end
-        
+
         local notificationColor
         if self.notificationType == "success" then
             notificationColor = theme.success
@@ -136,17 +144,17 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         else
             notificationColor = theme.accent
         end
-        
+
         local notificationHeight = self.options.height or (self.options.buttons and 120 or 80)
-        
+
         self.frame = Instance.new("Frame")
         self.frame.Size = UDim2.new(1, 0, 0, notificationHeight)
         self.frame.BackgroundColor3 = theme.surface
         self.frame.BorderSizePixel = 0
         self.frame.Position = UDim2.new(1, 300, 0, 0)
         self.frame.AnchorPoint = Vector2.new(0, 0)
-        self.frame.Parent = self.mainGui.NotificationsContainer
-        
+        self.frame.Parent = self.container
+
         local shadow = Instance.new("ImageLabel")
         shadow.Size = UDim2.new(1, 40, 1, 40)
         shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -159,21 +167,21 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         shadow.SliceCenter = Rect.new(49, 49, 450, 450)
         shadow.ZIndex = self.frame.ZIndex - 1
         shadow.Parent = self.frame
-        
+
         local corner = Instance.new("UICorner")
         corner.CornerRadius = UDim.new(0, 8)
         corner.Parent = self.frame
-        
+
         local topBar = Instance.new("Frame")
         topBar.Size = UDim2.new(1, 0, 0, 6)
         topBar.BackgroundColor3 = notificationColor
         topBar.BorderSizePixel = 0
         topBar.Parent = self.frame
-        
+
         local topCorner = Instance.new("UICorner")
         topCorner.CornerRadius = UDim.new(0, 4)
         topCorner.Parent = topBar
-        
+
         local titleLabel = Instance.new("TextLabel")
         titleLabel.Size = UDim2.new(1, -60, 0, 24)
         titleLabel.Position = UDim2.new(0, 15, 0, 15)
@@ -184,7 +192,7 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         titleLabel.TextXAlignment = Enum.TextXAlignment.Left
         titleLabel.Text = self.title
         titleLabel.Parent = self.frame
-        
+
         local descriptionLabel = Instance.new("TextLabel")
         descriptionLabel.Size = UDim2.new(1, -30, 0, 40)
         descriptionLabel.Position = UDim2.new(0, 15, 0, 39)
@@ -197,21 +205,21 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         descriptionLabel.TextWrapped = true
         descriptionLabel.Text = self.description
         descriptionLabel.Parent = self.frame
-        
+
         if self.options.buttons then
             local buttonContainer = Instance.new("Frame")
             buttonContainer.Size = UDim2.new(1, -30, 0, 30)
             buttonContainer.Position = UDim2.new(0, 15, 1, -40)
             buttonContainer.BackgroundTransparency = 1
             buttonContainer.Parent = self.frame
-            
+
             local buttonLayout = Instance.new("UIListLayout")
             buttonLayout.FillDirection = Enum.FillDirection.Horizontal
             buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
             buttonLayout.SortOrder = Enum.SortOrder.LayoutOrder
             buttonLayout.Padding = UDim.new(0, 10)
             buttonLayout.Parent = buttonContainer
-            
+
             for i, buttonInfo in ipairs(self.options.buttons) do
                 local button = Instance.new("TextButton")
                 button.Size = UDim2.new(0, 80, 1, 0)
@@ -225,11 +233,11 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 button.ClipsDescendants = true
                 button.AutoButtonColor = false
                 button.Parent = buttonContainer
-                
+
                 local buttonCorner = Instance.new("UICorner")
                 buttonCorner.CornerRadius = UDim.new(0, 4)
                 buttonCorner.Parent = button
-                
+
                 local buttonShadow = Instance.new("ImageLabel")
                 buttonShadow.Size = UDim2.new(1, 6, 1, 6)
                 buttonShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -242,7 +250,7 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 buttonShadow.SliceCenter = Rect.new(49, 49, 450, 450)
                 buttonShadow.ZIndex = button.ZIndex - 1
                 buttonShadow.Parent = button
-                
+
                 button.MouseEnter:Connect(function()
                     createTween(button, {
                         BackgroundColor3 = i == 1 and 
@@ -253,13 +261,13 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                             ) or theme.accent
                     }):Play()
                 end)
-                
+
                 button.MouseLeave:Connect(function()
                     createTween(button, {
                         BackgroundColor3 = i == 1 and notificationColor or theme.background
                     }):Play()
                 end)
-                
+
                 button.MouseButton1Click:Connect(function()
                     createRippleEffect(button, Color3.fromRGB(255, 255, 255))
                     if buttonInfo.callback then
@@ -269,7 +277,7 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 end)
             end
         end
-        
+
         local closeButton = Instance.new("TextButton")
         closeButton.Size = UDim2.new(0, 24, 0, 24)
         closeButton.Position = UDim2.new(1, -30, 0, 15)
@@ -279,20 +287,20 @@ function Notifications.show(mainGui, title, description, notificationType, optio
         closeButton.TextColor3 = theme.text
         closeButton.Text = "✕"
         closeButton.Parent = self.frame
-        
+
         closeButton.MouseEnter:Connect(function()
             createTween(closeButton, {TextColor3 = theme.error}):Play()
         end)
-        
+
         closeButton.MouseLeave:Connect(function()
             createTween(closeButton, {TextColor3 = theme.text}):Play()
         end)
-        
+
         closeButton.MouseButton1Click:Connect(function()
             createRippleEffect(closeButton, theme.error)
             self:Destroy()
         end)
-        
+
         if self.options.sound then
             local sound = Instance.new("Sound")
             sound.SoundId = self.options.sound
@@ -300,7 +308,7 @@ function Notifications.show(mainGui, title, description, notificationType, optio
             sound.Parent = self.frame
             sound:Play()
         end
-        
+
         self.isVisible = true
         createTween(
             self.frame,
@@ -308,7 +316,7 @@ function Notifications.show(mainGui, title, description, notificationType, optio
             0.3,
             Enum.EasingStyle.Back
         ):Play()
-        
+
         local duration = self.options.duration or 5
         if duration > 0 then
             task.delay(duration, function()
@@ -318,11 +326,11 @@ function Notifications.show(mainGui, title, description, notificationType, optio
             end)
         end
     end
-    
+
     function notification:Destroy()
         if self.isDestroyed then return end
         self.isDestroyed = true
-        
+
         if self.frame then
             createTween(
                 self.frame,
@@ -331,18 +339,18 @@ function Notifications.show(mainGui, title, description, notificationType, optio
                 Enum.EasingStyle.Back,
                 Enum.EasingDirection.In
             ):Play()
-            
+
             for i, notif in ipairs(activeNotifications) do
                 if notif == self then
                     table.remove(activeNotifications, i)
                     break
                 end
             end
-            
+
             task.delay(0.1, function()
                 Notifications.processQueue()
             end)
-            
+
             task.delay(0.3, function()
                 if self.frame and self.frame.Parent then
                     self.frame:Destroy()
@@ -351,14 +359,14 @@ function Notifications.show(mainGui, title, description, notificationType, optio
             end)
         end
     end
-    
+
     if #activeNotifications < maxNotificationsVisible then
         table.insert(activeNotifications, notification)
         notification:Show()
     else
         table.insert(notificationQueue, notification)
     end
-    
+
     return notification
 end
 
@@ -410,7 +418,7 @@ function AdonisEngine.Start(title, iconId, DevMode)
     enterAnim:Play()
 
     self.gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    Notifications.createContainer(self.gui)
+    self.notificationContainer = Notifications.createContainer(self.gui)
 
     if self.DevMode then
         self:Notify("DevMode Enabled", "AdonisEngine is running in developer mode", "success", 5)
