@@ -137,7 +137,7 @@ function Tools.Button(engine, text, section, callback)
     local button = create("TextButton", {
         Parent = buttonContainer,
         Size = UDim2.new(1, -10, 0.8, 0),
-        Position = UDim2.new(0, 5, 0.1, 0),
+        Position = UDim2.new(0, 2, 0.1, 0),
         BackgroundTransparency = 1,
         Text = text,
         TextColor3 = self.theme and self.theme.text or Color3.fromRGB(230, 230, 230),
