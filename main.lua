@@ -18,8 +18,13 @@ local theme = {
 local function create(className, props)
     local instance = Instance.new(className)
     for prop, val in pairs(props) do
+        -- Si es una tabla y es una propiedad de texto, convertir a string solo si es necesario
         if type(val) == "table" and (prop == "Text" or prop == "Name" or prop == "Font" or prop == "Image" or prop == "SoundId" or prop == "Title" or prop == "PlaceholderText") then
-            instance[prop] = tostring(val)
+            if val[1] ~= nil then
+                instance[prop] = tostring(val[1])
+            else
+                instance[prop] = "Valor no especificado"
+            end
         else
             instance[prop] = val
         end
@@ -517,8 +522,20 @@ function AdonisEngine.Start(title, options)
 
     self.DevMode = options.DevMode or false
 
+    -- Asegurarse de que el título sea una cadena de texto
+    local guiTitle = "Adonis Library"
+    if title then
+        if type(title) == "string" then
+            guiTitle = title
+        elseif type(title) == "table" and title[1] then
+            guiTitle = tostring(title[1])
+        else
+            guiTitle = tostring(title)
+        end
+    end
+
     self.gui = create("ScreenGui", {
-        Name = title or "Adonis Library",
+        Name = guiTitle,
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
         DisplayOrder = 999
@@ -547,7 +564,7 @@ function AdonisEngine.Start(title, options)
     })
 
     -- Create top bar with title and controls
-    self:CreateTopBar(title or "Adonis Library")
+    self:CreateTopBar(guiTitle)
     self:CreateContentArea()
 
     -- Animation for opening
@@ -604,13 +621,20 @@ function AdonisEngine:CreateTopBar(title)
         ScaleType = Enum.ScaleType.Fit
     })
 
-    -- Title
+    -- Title - Asegurarse de que el título sea una cadena de texto
+    local titleText = title
+    if type(title) == "table" then
+        titleText = tostring(title[1] or "Adonis Library")
+    elseif type(title) ~= "string" then
+        titleText = tostring(title)
+    end
+    
     self.title = create("TextLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0.7, 0, 1, 0),
         Position = UDim2.new(0, 45, 0, 0),
         BackgroundTransparency = 1,
-        Text = title,
+        Text = titleText,
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.SourceSansSemibold,
@@ -643,15 +667,15 @@ function AdonisEngine:CreateTopBar(title)
 
     -- Close button
     self.closeButton = create("TextButton", {
-    Parent = self.topBar,
-    Size = UDim2.new(0, 30, 0, 30),
-    Position = UDim2.new(1, -35, 0.5, -15),
-    BackgroundTransparency = 1,
-    Text = "X",
-    TextColor3 = theme.text,
-    TextSize = 18,
-    Font = Enum.Font.SourceSansBold
-})
+        Parent = self.topBar,
+        Size = UDim2.new(0, 30, 0, 30),
+        Position = UDim2.new(1, -35, 0.5, -15),
+        BackgroundTransparency = 1,
+        Text = "X",
+        TextColor3 = theme.text,
+        TextSize = 18,
+        Font = Enum.Font.SourceSansBold
+    })
 
     -- Button hover effects
     for _, button in pairs({self.searchButton, self.minimizeButton, self.closeButton}) do
@@ -740,7 +764,7 @@ function AdonisEngine:CreateContentArea()
     -- Left sidebar for navigation
     self.leftPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0.25, 0, 1, 0),
+        Size = UDim2.new(0.22, 0, 1, 0),  -- Reducido para dar más espacio al panel derecho
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0.2,
         ScrollBarThickness = 4,
@@ -754,8 +778,8 @@ function AdonisEngine:CreateContentArea()
     -- Main content area
     self.rightPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0.75, 0, 1, 0),
-        Position = UDim2.new(0.25, 0, 0, 0),
+        Size = UDim2.new(0.78, 0, 1, 0),  -- Aumentado para compensar la reducción del panel izquierdo
+        Position = UDim2.new(0.22, 0, 0, 0),  -- Ajustado para alinearse con el nuevo tamaño del panel izquierdo
         BackgroundColor3 = theme.background,
         BackgroundTransparency = 0,
         ScrollBarThickness = 4,
@@ -778,8 +802,8 @@ function AdonisEngine:CreateContentArea()
         Parent = self.leftPanel,
         PaddingTop = UDim.new(0, 10),
         PaddingBottom = UDim.new(0, 10),
-        PaddingLeft = UDim.new(0, 10),
-        PaddingRight = UDim.new(0, 10)
+        PaddingLeft = UDim.new(0, 5),  -- Reducido para dar más espacio a los elementos
+        PaddingRight = UDim.new(0, 5)  -- Reducido para dar más espacio a los elementos
     })
 
     -- Padding for the main content
@@ -932,12 +956,12 @@ function AdonisEngine:Button(text, section, callback)
     end
 
     local buttonContainer = create("Frame", {
-    Parent = section.container,
-    Size = UDim2.new(1, -10, 0, 35),
-    BackgroundColor3 = theme.surface,
-    BackgroundTransparency = 0.2,
-    LayoutOrder = #section.elements + 1
-})
+        Parent = section.container,
+        Size = UDim2.new(1, -20, 0, 35),  -- Reducido el ancho para evitar desbordamiento
+        BackgroundColor3 = theme.surface,
+        BackgroundTransparency = 0.2,
+        LayoutOrder = #section.elements + 1
+    })
 
     create("UICorner", {
         Parent = buttonContainer,
@@ -946,19 +970,18 @@ function AdonisEngine:Button(text, section, callback)
 
     -- Create the actual button
     local button = create("TextButton", {
-    Parent = buttonContainer,
-    Size = UDim2.new(1, -10, 0.8, 0),
-    Position = UDim2.new(0, 5, 0.1, 0),
-    BackgroundTransparency = 1,
-    Text = text,
-    TextColor3 = theme.text,
-    TextSize = 14,
-    Font = Enum.Font.SourceSansSemibold,
-    ClipsDescendants = true,
-    TextXAlignment = Enum.TextXAlignment.Left
-})
+        Parent = buttonContainer,
+        Size = UDim2.new(1, -10, 0.8, 0),
+        Position = UDim2.new(0, 5, 0.1, 0),
+        BackgroundTransparency = 1,
+        Text = text,
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.SourceSansSemibold,
+        ClipsDescendants = true,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
 
-    -- Button hover and click effects
     button.MouseEnter:Connect(function()
         createTween(buttonContainer, {
             BackgroundColor3 = theme.accent,
@@ -991,10 +1014,8 @@ function AdonisEngine:Button(text, section, callback)
 
     table.insert(section.elements, buttonContainer)
 
-    -- Create component object with methods
     local component = Component.new(buttonContainer)
 
-    -- Store in components table
     local id = #self.components + 1
     self.components[id] = component
 
@@ -1073,7 +1094,7 @@ function AdonisEngine:Toggle(text, section, default, callback)
     BackgroundColor3 = default and theme.accent or theme.secondary,
     BorderSizePixel = 0
 })
-    
+
     create("UICorner", {
         Parent = toggleBackground,
         CornerRadius = UDim.new(1, 0)
@@ -1190,7 +1211,7 @@ function AdonisEngine:Menu(text, section, options, callback)
     -- Create menu container
     local menuContainer = create("Frame", {
         Parent = section.container,
-        Size = UDim2.new(1, 0, 0, 40),
+        Size = UDim2.new(1, -20, 0, 40),  -- Reducido el ancho para evitar desbordamiento
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0.2,
         LayoutOrder = #section.elements + 1
@@ -1204,7 +1225,7 @@ function AdonisEngine:Menu(text, section, options, callback)
     -- Menu label
     local label = create("TextLabel", {
         Parent = menuContainer,
-        Size = UDim2.new(0.4, 0, 1, 0),
+        Size = UDim2.new(0.35, 0, 1, 0),  -- Reducido el ancho para dar más espacio al dropdown
         Position = UDim2.new(0, 10, 0, 0),
         BackgroundTransparency = 1,
         Text = text,
@@ -1216,17 +1237,17 @@ function AdonisEngine:Menu(text, section, options, callback)
 
     -- Dropdown button
     local dropdownButton = create("TextButton", {
-    Parent = menuContainer,
-    Size = UDim2.new(0.6, 0, 0, 35),
-    Position = UDim2.new(0.38, 0, 0.5, -17),
-    BackgroundColor3 = theme.secondary,
-    BackgroundTransparency = 0.2,
-    Text = options[1],
-    TextColor3 = theme.text,
-    TextSize = 14,
-    Font = Enum.Font.SourceSans,
-    ClipsDescendants = true
-})
+        Parent = menuContainer,
+        Size = UDim2.new(0.6, 0, 0, 30),
+        Position = UDim2.new(0.35, 10, 0.5, -15),  -- Ajustado para estar más cerca del label
+        BackgroundColor3 = theme.secondary,
+        BackgroundTransparency = 0.2,
+        Text = options[1],
+        TextColor3 = theme.text,
+        TextSize = 14,
+        Font = Enum.Font.SourceSans,
+        ClipsDescendants = true
+    })
 
     create("UICorner", {
         Parent = dropdownButton,
@@ -1249,7 +1270,7 @@ function AdonisEngine:Menu(text, section, options, callback)
     local dropdownMenu = create("Frame", {
         Parent = menuContainer,
         Size = UDim2.new(0.55, 0, 0, 0), -- Will be resized when opened
-        Position = UDim2.new(0.43, 0, 1, 5),
+        Position = UDim2.new(0.4, 0, 1, 5),  -- Ajustado para alinearse mejor con el botón
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0,
         Visible = false,
