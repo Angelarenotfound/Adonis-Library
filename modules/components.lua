@@ -122,7 +122,7 @@ function Tools.Button(engine, text, section, callback)
 
     local buttonContainer = create("Frame", {
         Parent = section.container,
-        Size = UDim2.new(1, -20, 0, 35),  -- Reducido el ancho para evitar desbordamiento
+        Size = UDim2.new(1, 0, 0, 35), -- Usando solo escala para el ancho
         BackgroundColor3 = self.theme and self.theme.surface or Color3.fromRGB(30, 30, 35),
         BackgroundTransparency = 0.2,
         LayoutOrder = #section.elements + 1
@@ -136,15 +136,17 @@ function Tools.Button(engine, text, section, callback)
     -- Create the actual button
     local button = create("TextButton", {
         Parent = buttonContainer,
-        Size = UDim2.new(1, -10, 0.8, 0),
-        Position = UDim2.new(0, -4, 0, -4),
+        Size = UDim2.new(1, 0, 0.8, 0), -- Usando solo escala para el ancho
+        Position = UDim2.new(0, 0, 0.1, 0), -- Ajustando la posición vertical con escala
+        AnchorPoint = Vector2.new(0, 0.5), -- Anclando al lado izquierdo y centro vertical
         BackgroundTransparency = 1,
         Text = text,
         TextColor3 = self.theme and self.theme.text or Color3.fromRGB(230, 230, 230),
         TextSize = 14,
         Font = Enum.Font.SourceSansSemibold,
         ClipsDescendants = true,
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center -- Centrar el texto verticalmente
     })
 
     button.MouseEnter:Connect(function()
@@ -190,6 +192,17 @@ function Tools.Button(engine, text, section, callback)
 
     return component
 end
+
+
+
+
+
+
+
+
+
+
+
 
 function Tools.Toggle(engine, text, section, default, callback)
     local self = engine
