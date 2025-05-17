@@ -15,7 +15,6 @@ local theme = {
     secondary = Color3.fromRGB(50, 50, 55)
 }
 
--- Load external modules
 local Notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angelarenotfound/Adonis-Library/refs/heads/main/modules/notify.lua"))()
 local Tools = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angelarenotfound/Adonis-Library/refs/heads/main/modules/components.lua"))()
 
@@ -34,7 +33,6 @@ end
 local function create(className, props)
     local instance = Instance.new(className)
     for prop, val in pairs(props) do
-        -- Si es una tabla y es una propiedad de texto, convertir a string solo si es necesario
         if type(val) == "table" and (prop == "Text" or prop == "Name" or prop == "Font" or prop == "Image" or prop == "SoundId" or prop == "Title" or prop == "PlaceholderText") then
             if val[1] ~= nil then
                 instance[prop] = tostring(val[1])
@@ -99,7 +97,6 @@ function AdonisEngine.Start(title, options)
     local self = getInstance()
     options = options or {}
 
-    -- Set custom background if provided
     if options.background then
         theme.background = options.background
     end
@@ -110,13 +107,10 @@ function AdonisEngine.Start(title, options)
 
     self.DevMode = options.DevMode or false
 
-    -- Asegurarse de que el título sea una cadena de texto
     local guiTitle = "Adonis Library"
     if title then
         if type(title) == "string" then
             guiTitle = title
-        elseif type(title) == "table" and title[1] then
-            guiTitle = tostring(title[1])
         else
             guiTitle = tostring(title)
         end
@@ -151,11 +145,9 @@ function AdonisEngine.Start(title, options)
         Transparency = 0.5
     })
 
-    -- Create top bar with title and controls
     self:CreateTopBar(guiTitle)
     self:CreateContentArea()
 
-    -- Animation for opening
     self.mainFrame.Position = UDim2.new(0.5, 0, -1, 0)
     self.mainFrame.Visible = true
 
@@ -190,7 +182,6 @@ function AdonisEngine:CreateTopBar(title)
         CornerRadius = UDim.new(0, 8)
     })
 
-    -- Only round the top corners
     local topBarCornerFix = create("Frame", {
         Parent = self.topBar,
         Size = UDim2.new(1, 0, 0.5, 0),
@@ -199,37 +190,27 @@ function AdonisEngine:CreateTopBar(title)
         BorderSizePixel = 0
     })
 
-    -- Logo/Icon
     self.icon = create("ImageLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0, 24, 0, 24),
         Position = UDim2.new(0, 15, 0.5, -12),
         BackgroundTransparency = 1,
-        Image = "rbxassetid://11743702977", -- Placeholder icon
+        Image = "rbxassetid://11743702977",
         ScaleType = Enum.ScaleType.Fit
     })
-
-    -- Title - Asegurarse de que el título sea una cadena de texto
-    local titleText = title
-    if type(title) == "table" then
-        titleText = tostring(title[1] or "Adonis Library")
-    elseif type(title) ~= "string" then
-        titleText = tostring(title)
-    end
 
     self.title = create("TextLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0.7, 0, 1, 0),
         Position = UDim2.new(0, 45, 0, 0),
         BackgroundTransparency = 1,
-        Text = titleText,
+        Text = title,
         TextColor3 = theme.text,
         TextSize = 16,
         Font = Enum.Font.SourceSansSemibold,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Search button
     self.searchButton = create("TextButton", {
         Parent = self.topBar,
         Size = UDim2.new(0, 24, 0, 24),
@@ -241,7 +222,6 @@ function AdonisEngine:CreateTopBar(title)
         Font = Enum.Font.SourceSansBold
     })
 
-    -- Minimize button
     self.minimizeButton = create("TextButton", {
         Parent = self.topBar,
         Size = UDim2.new(0, 24, 0, 24),
@@ -253,7 +233,6 @@ function AdonisEngine:CreateTopBar(title)
         Font = Enum.Font.SourceSansBold
     })
 
-    -- Close button
     self.closeButton = create("TextButton", {
         Parent = self.topBar,
         Size = UDim2.new(0, 30, 0, 30),
@@ -265,7 +244,6 @@ function AdonisEngine:CreateTopBar(title)
         Font = Enum.Font.SourceSansBold
     })
 
-    -- Button hover effects
     for _, button in pairs({self.searchButton, self.minimizeButton, self.closeButton}) do
         button.MouseEnter:Connect(function()
             createTween(button, {
@@ -282,16 +260,13 @@ function AdonisEngine:CreateTopBar(title)
         end)
     end
 
-    -- Close button functionality
     self.closeButton.MouseButton1Click:Connect(function()
         createRippleEffect(self.closeButton, theme.error)
         self:Destroy()
     end)
 
-    -- Minimize button functionality
     self.minimizeButton.MouseButton1Click:Connect(function()
         createRippleEffect(self.minimizeButton, theme.accent)
-        -- Toggle minimized state
         if not self.minimized then
             createTween(self.mainFrame, {
                 Size = UDim2.new(0.7, 0, 0, 40)
@@ -305,7 +280,6 @@ function AdonisEngine:CreateTopBar(title)
         end
     end)
 
-    -- Make the window draggable
     local dragInput
     local dragStart
     local startPos
@@ -349,10 +323,9 @@ function AdonisEngine:CreateContentArea()
         BackgroundTransparency = 1
     })
 
-    -- Left sidebar for navigation
     self.leftPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0.22, 0, 1, 0),  -- Reducido para dar más espacio al panel derecho
+        Size = UDim2.new(0.22, 0, 1, 0),
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0.2,
         ScrollBarThickness = 4,
@@ -363,11 +336,10 @@ function AdonisEngine:CreateContentArea()
         BorderSizePixel = 0
     })
 
-    -- Main content area
     self.rightPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
-        Size = UDim2.new(0.78, 0, 1, 0),  -- Aumentado para compensar la reducción del panel izquierdo
-        Position = UDim2.new(0.22, 0, 0, 0),  -- Ajustado para alinearse con el nuevo tamaño del panel izquierdo
+        Size = UDim2.new(0.78, 0, 1, 0),
+        Position = UDim2.new(0.22, 0, 0, 0),
         BackgroundColor3 = theme.background,
         BackgroundTransparency = 0,
         ScrollBarThickness = 4,
@@ -378,7 +350,6 @@ function AdonisEngine:CreateContentArea()
         BorderSizePixel = 0
     })
 
-    -- List layout for the sidebar items
     create("UIListLayout", {
         Parent = self.leftPanel,
         Padding = UDim.new(0, 5),
@@ -390,11 +361,10 @@ function AdonisEngine:CreateContentArea()
         Parent = self.leftPanel,
         PaddingTop = UDim.new(0, 10),
         PaddingBottom = UDim.new(0, 10),
-        PaddingLeft = UDim.new(0, 5),  -- Reducido para dar más espacio a los elementos
-        PaddingRight = UDim.new(0, 5)  -- Reducido para dar más espacio a los elementos
+        PaddingLeft = UDim.new(0, 5),
+        PaddingRight = UDim.new(0, 5)
     })
 
-    -- Padding for the main content
     create("UIPadding", {
         Parent = self.rightPanel,
         PaddingTop = UDim.new(0, 20),
@@ -414,7 +384,6 @@ function AdonisEngine:Section(name)
         end
     end
 
-    -- Create a section button in the sidebar
     local sectionButton = create("TextButton", {
         Parent = self.leftPanel,
         Size = UDim2.new(1, 0, 0, 30),
@@ -429,17 +398,15 @@ function AdonisEngine:Section(name)
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- Add an icon to the section button
     local icon = create("ImageLabel", {
         Parent = sectionButton,
         Size = UDim2.new(0, 16, 0, 16),
         Position = UDim2.new(0, 5, 0.5, -8),
         BackgroundTransparency = 1,
-        Image = "rbxassetid://11743702977", -- Placeholder icon
+        Image = "rbxassetid://11743702977",
         ImageColor3 = theme.text
     })
 
-    -- Adjust text position to account for icon
     sectionButton.Text = "   " .. name
 
     create("UICorner", {
@@ -447,13 +414,12 @@ function AdonisEngine:Section(name)
         CornerRadius = UDim.new(0, 4)
     })
 
-    -- Create a container for the section's content
     local sectionContainer = create("Frame", {
         Parent = self.rightPanel,
         Size = UDim2.new(1, 0, 0, 0),
         BackgroundTransparency = 1,
         AutomaticSize = Enum.AutomaticSize.Y,
-        Visible = #self.sections == 0 -- First section is visible by default
+        Visible = #self.sections == 0
     })
 
     create("UIListLayout", {
@@ -480,7 +446,6 @@ function AdonisEngine:Section(name)
 
     table.insert(self.sections, section)
 
-    -- Button hover and click effects
     sectionButton.MouseEnter:Connect(function()
         createTween(sectionButton, {
             BackgroundTransparency = 0.6
@@ -496,13 +461,11 @@ function AdonisEngine:Section(name)
     sectionButton.MouseButton1Click:Connect(function()
         createRippleEffect(sectionButton, Color3.fromRGB(255, 255, 255))
 
-        -- Hide all other sections
         for _, sec in ipairs(self.sections) do
             sec.container.Visible = false
             createTween(sec.button, {BackgroundTransparency = 0.8}, 0.2):Play()
         end
 
-        -- Show this section
         sectionContainer.Visible = true
         createTween(sectionButton, {BackgroundTransparency = 0.6}, 0.2):Play()
     end)
