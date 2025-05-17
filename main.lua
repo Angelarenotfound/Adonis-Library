@@ -91,6 +91,7 @@ local function adjustForMobile(size)
     return size
 end
 
+-- Component base class
 local Component = {}
 Component.__index = Component
 
@@ -505,6 +506,7 @@ function AdonisEngine.Start(title, options)
     local self = getInstance()
     options = options or {}
 
+    -- Set custom background if provided
     if options.background then
         theme.background = options.background
     end
@@ -544,9 +546,11 @@ function AdonisEngine.Start(title, options)
         Transparency = 0.5
     })
 
+    -- Create top bar with title and controls
     self:CreateTopBar(title or "Adonis Library")
     self:CreateContentArea()
 
+    -- Animation for opening
     self.mainFrame.Position = UDim2.new(0.5, 0, -1, 0)
     self.mainFrame.Visible = true
 
@@ -581,6 +585,7 @@ function AdonisEngine:CreateTopBar(title)
         CornerRadius = UDim.new(0, 8)
     })
 
+    -- Only round the top corners
     local topBarCornerFix = create("Frame", {
         Parent = self.topBar,
         Size = UDim2.new(1, 0, 0.5, 0),
@@ -589,15 +594,17 @@ function AdonisEngine:CreateTopBar(title)
         BorderSizePixel = 0
     })
 
+    -- Logo/Icon
     self.icon = create("ImageLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0, 24, 0, 24),
         Position = UDim2.new(0, 15, 0.5, -12),
         BackgroundTransparency = 1,
-        Image = "rbxassetid://11743702977",
+        Image = "rbxassetid://11743702977", -- Placeholder icon
         ScaleType = Enum.ScaleType.Fit
     })
 
+    -- Title
     self.title = create("TextLabel", {
         Parent = self.topBar,
         Size = UDim2.new(0.7, 0, 1, 0),
@@ -610,6 +617,7 @@ function AdonisEngine:CreateTopBar(title)
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
+    -- Search button
     self.searchButton = create("TextButton", {
         Parent = self.topBar,
         Size = UDim2.new(0, 24, 0, 24),
@@ -621,6 +629,7 @@ function AdonisEngine:CreateTopBar(title)
         Font = Enum.Font.SourceSansBold
     })
 
+    -- Minimize button
     self.minimizeButton = create("TextButton", {
         Parent = self.topBar,
         Size = UDim2.new(0, 24, 0, 24),
@@ -632,17 +641,19 @@ function AdonisEngine:CreateTopBar(title)
         Font = Enum.Font.SourceSansBold
     })
 
+    -- Close button
     self.closeButton = create("TextButton", {
-        Parent = self.topBar,
-        Size = UDim2.new(0, 24, 0, 24),
-        Position = UDim2.new(1, -25, 0.5, -12),
-        BackgroundTransparency = 1,
-        Text = "✕",
-        TextColor3 = theme.text,
-        TextSize = 16,
-        Font = Enum.Font.SourceSansBold
-    })
+    Parent = self.topBar,
+    Size = UDim2.new(0, 30, 0, 30),
+    Position = UDim2.new(1, -35, 0.5, -15),
+    BackgroundTransparency = 1,
+    Text = "X",
+    TextColor3 = theme.text,
+    TextSize = 18,
+    Font = Enum.Font.SourceSansBold
+})
 
+    -- Button hover effects
     for _, button in pairs({self.searchButton, self.minimizeButton, self.closeButton}) do
         button.MouseEnter:Connect(function()
             createTween(button, {
@@ -659,13 +670,16 @@ function AdonisEngine:CreateTopBar(title)
         end)
     end
 
+    -- Close button functionality
     self.closeButton.MouseButton1Click:Connect(function()
         createRippleEffect(self.closeButton, theme.error)
         self:Destroy()
     end)
 
+    -- Minimize button functionality
     self.minimizeButton.MouseButton1Click:Connect(function()
         createRippleEffect(self.minimizeButton, theme.accent)
+        -- Toggle minimized state
         if not self.minimized then
             createTween(self.mainFrame, {
                 Size = UDim2.new(0.7, 0, 0, 40)
@@ -679,6 +693,7 @@ function AdonisEngine:CreateTopBar(title)
         end
     end)
 
+    -- Make the window draggable
     local dragInput
     local dragStart
     local startPos
@@ -722,6 +737,7 @@ function AdonisEngine:CreateContentArea()
         BackgroundTransparency = 1
     })
 
+    -- Left sidebar for navigation
     self.leftPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
         Size = UDim2.new(0.25, 0, 1, 0),
@@ -735,6 +751,7 @@ function AdonisEngine:CreateContentArea()
         BorderSizePixel = 0
     })
 
+    -- Main content area
     self.rightPanel = create("ScrollingFrame", {
         Parent = self.contentFrame,
         Size = UDim2.new(0.75, 0, 1, 0),
@@ -749,6 +766,7 @@ function AdonisEngine:CreateContentArea()
         BorderSizePixel = 0
     })
 
+    -- List layout for the sidebar items
     create("UIListLayout", {
         Parent = self.leftPanel,
         Padding = UDim.new(0, 5),
@@ -764,11 +782,12 @@ function AdonisEngine:CreateContentArea()
         PaddingRight = UDim.new(0, 10)
     })
 
+    -- Padding for the main content
     create("UIPadding", {
         Parent = self.rightPanel,
         PaddingTop = UDim.new(0, 20),
         PaddingBottom = UDim.new(0, 20),
-        PaddingLeft = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 20),
         PaddingRight = UDim.new(0, 20)
     })
 end
@@ -783,6 +802,7 @@ function AdonisEngine:Section(name)
         end
     end
 
+    -- Create a section button in the sidebar
     local sectionButton = create("TextButton", {
         Parent = self.leftPanel,
         Size = UDim2.new(1, 0, 0, 30),
@@ -797,15 +817,17 @@ function AdonisEngine:Section(name)
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
+    -- Add an icon to the section button
     local icon = create("ImageLabel", {
         Parent = sectionButton,
         Size = UDim2.new(0, 16, 0, 16),
         Position = UDim2.new(0, 5, 0.5, -8),
         BackgroundTransparency = 1,
-        Image = "rbxassetid://11743702977",
+        Image = "rbxassetid://11743702977", -- Placeholder icon
         ImageColor3 = theme.text
     })
 
+    -- Adjust text position to account for icon
     sectionButton.Text = "   " .. name
 
     create("UICorner", {
@@ -813,19 +835,20 @@ function AdonisEngine:Section(name)
         CornerRadius = UDim.new(0, 4)
     })
 
+    -- Create a container for the section's content
     local sectionContainer = create("Frame", {
         Parent = self.rightPanel,
         Size = UDim2.new(1, 0, 0, 0),
         BackgroundTransparency = 1,
         AutomaticSize = Enum.AutomaticSize.Y,
-        Visible = #self.sections == 0
+        Visible = #self.sections == 0 -- First section is visible by default
     })
 
     create("UIListLayout", {
         Parent = sectionContainer,
         Padding = UDim.new(0, 10),
         SortOrder = Enum.SortOrder.LayoutOrder,
-        HorizontalAlignment = Enum.HorizontalAlignment.Left
+        HorizontalAlignment = Enum.HorizontalAlignment.Center
     })
 
     create("UIPadding", {
@@ -845,6 +868,7 @@ function AdonisEngine:Section(name)
 
     table.insert(self.sections, section)
 
+    -- Button hover and click effects
     sectionButton.MouseEnter:Connect(function()
         createTween(sectionButton, {
             BackgroundTransparency = 0.6
@@ -860,11 +884,13 @@ function AdonisEngine:Section(name)
     sectionButton.MouseButton1Click:Connect(function()
         createRippleEffect(sectionButton, Color3.fromRGB(255, 255, 255))
 
+        -- Hide all other sections
         for _, sec in ipairs(self.sections) do
             sec.container.Visible = false
             createTween(sec.button, {BackgroundTransparency = 0.8}, 0.2):Play()
         end
 
+        -- Show this section
         sectionContainer.Visible = true
         createTween(sectionButton, {BackgroundTransparency = 0.6}, 0.2):Play()
     end)
@@ -906,31 +932,33 @@ function AdonisEngine:Button(text, section, callback)
     end
 
     local buttonContainer = create("Frame", {
-        Parent = section.container,
-        Size = UDim2.new(1, 0, 0, 40),
-        BackgroundColor3 = theme.surface,
-        BackgroundTransparency = 0.2,
-        LayoutOrder = #section.elements + 1
-    })
+    Parent = section.container,
+    Size = UDim2.new(1, -10, 0, 35),
+    BackgroundColor3 = theme.surface,
+    BackgroundTransparency = 0.2,
+    LayoutOrder = #section.elements + 1
+})
 
     create("UICorner", {
         Parent = buttonContainer,
         CornerRadius = UDim.new(0, 6)
     })
 
+    -- Create the actual button
     local button = create("TextButton", {
-        Parent = buttonContainer,
-        Size = UDim2.new(1, -10, 1, -10),
-        Position = UDim2.new(0, 5, 0, 5),
-        BackgroundTransparency = 1,
-        Text = text,
-        TextColor3 = theme.text,
-        TextSize = 14,
-        Font = Enum.Font.SourceSansSemibold,
-        ClipsDescendants = true,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
+    Parent = buttonContainer,
+    Size = UDim2.new(1, -10, 0.8, 0),
+    Position = UDim2.new(0, 5, 0.1, 0),
+    BackgroundTransparency = 1,
+    Text = text,
+    TextColor3 = theme.text,
+    TextSize = 14,
+    Font = Enum.Font.SourceSansSemibold,
+    ClipsDescendants = true,
+    TextXAlignment = Enum.TextXAlignment.Left
+})
 
+    -- Button hover and click effects
     button.MouseEnter:Connect(function()
         createTween(buttonContainer, {
             BackgroundColor3 = theme.accent,
@@ -963,8 +991,10 @@ function AdonisEngine:Button(text, section, callback)
 
     table.insert(section.elements, buttonContainer)
 
+    -- Create component object with methods
     local component = Component.new(buttonContainer)
 
+    -- Store in components table
     local id = #self.components + 1
     self.components[id] = component
 
@@ -1008,6 +1038,7 @@ function AdonisEngine:Toggle(text, section, default, callback)
         end
     end
 
+    -- Create toggle container
     local toggleContainer = create("Frame", {
         Parent = section.container,
         Size = UDim2.new(1, 0, 0, 40),
@@ -1021,6 +1052,7 @@ function AdonisEngine:Toggle(text, section, default, callback)
         CornerRadius = UDim.new(0, 6)
     })
 
+    -- Toggle label
     local label = create("TextLabel", {
         Parent = toggleContainer,
         Size = UDim2.new(0.7, 0, 1, 0),
@@ -1033,34 +1065,38 @@ function AdonisEngine:Toggle(text, section, default, callback)
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
+    -- Toggle switch background
     local toggleBackground = create("Frame", {
-        Parent = toggleContainer,
-        Size = UDim2.new(0, 40, 0, 20),
-        Position = UDim2.new(1, -50, 0.5, -10),
-        BackgroundColor3 = default and theme.accent or theme.secondary,
-        BorderSizePixel = 0
-    })
-
+    Parent = toggleContainer,
+    Size = UDim2.new(0, 50, 0, 25),
+    Position = UDim2.new(1, -60, 0.5, -12),
+    BackgroundColor3 = default and theme.accent or theme.secondary,
+    BorderSizePixel = 0
+})
+    
     create("UICorner", {
         Parent = toggleBackground,
         CornerRadius = UDim.new(1, 0)
     })
 
+    -- Toggle switch knob
     local toggleKnob = create("Frame", {
-        Parent = toggleBackground,
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = UDim2.new(default and 1 or 0, default and -18 or 2, 0.5, -8),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0
-    })
+    Parent = toggleBackground,
+    Size = UDim2.new(0, 20, 0, 20),
+    Position = UDim2.new(default and 1 or 0, default and -22 or 2, 0.5, -10),
+    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+    BorderSizePixel = 0
+})
 
     create("UICorner", {
         Parent = toggleKnob,
         CornerRadius = UDim.new(1, 0)
     })
 
+    -- Toggle state
     local enabled = default
 
+    -- Toggle functionality
     local function updateToggle()
         createTween(toggleBackground, {
             BackgroundColor3 = enabled and theme.accent or theme.secondary
@@ -1073,6 +1109,7 @@ function AdonisEngine:Toggle(text, section, default, callback)
         callback(enabled)
     end
 
+    -- Make the entire container clickable
     toggleContainer.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             enabled = not enabled
@@ -1082,8 +1119,10 @@ function AdonisEngine:Toggle(text, section, default, callback)
 
     table.insert(section.elements, toggleContainer)
 
+    -- Create component object with methods
     local component = Component.new(toggleContainer)
 
+    -- Add toggle-specific methods
     function component:SetState(state)
         if type(state) == "boolean" and state ~= enabled then
             enabled = state
@@ -1101,6 +1140,7 @@ function AdonisEngine:Toggle(text, section, default, callback)
         return enabled
     end
 
+    -- Store in components table
     local id = #self.components + 1
     self.components[id] = component
 
@@ -1147,6 +1187,7 @@ function AdonisEngine:Menu(text, section, options, callback)
         end
     end
 
+    -- Create menu container
     local menuContainer = create("Frame", {
         Parent = section.container,
         Size = UDim2.new(1, 0, 0, 40),
@@ -1160,6 +1201,7 @@ function AdonisEngine:Menu(text, section, options, callback)
         CornerRadius = UDim.new(0, 6)
     })
 
+    -- Menu label
     local label = create("TextLabel", {
         Parent = menuContainer,
         Size = UDim2.new(0.4, 0, 1, 0),
@@ -1172,24 +1214,26 @@ function AdonisEngine:Menu(text, section, options, callback)
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
+    -- Dropdown button
     local dropdownButton = create("TextButton", {
-        Parent = menuContainer,
-        Size = UDim2.new(0.55, 0, 0, 30),
-        Position = UDim2.new(0.43, 0, 0.5, -15),
-        BackgroundColor3 = theme.secondary,
-        BackgroundTransparency = 0.2,
-        Text = options[1],
-        TextColor3 = theme.text,
-        TextSize = 14,
-        Font = Enum.Font.SourceSans,
-        ClipsDescendants = true
-    })
+    Parent = menuContainer,
+    Size = UDim2.new(0.6, 0, 0, 35),
+    Position = UDim2.new(0.38, 0, 0.5, -17),
+    BackgroundColor3 = theme.secondary,
+    BackgroundTransparency = 0.2,
+    Text = options[1],
+    TextColor3 = theme.text,
+    TextSize = 14,
+    Font = Enum.Font.SourceSans,
+    ClipsDescendants = true
+})
 
     create("UICorner", {
         Parent = dropdownButton,
         CornerRadius = UDim.new(0, 4)
     })
 
+    -- Dropdown arrow
     local arrow = create("TextLabel", {
         Parent = dropdownButton,
         Size = UDim2.new(0, 20, 0, 20),
@@ -1201,9 +1245,10 @@ function AdonisEngine:Menu(text, section, options, callback)
         Font = Enum.Font.SourceSansBold
     })
 
+    -- Dropdown menu
     local dropdownMenu = create("Frame", {
         Parent = menuContainer,
-        Size = UDim2.new(0.55, 0, 0, 0),
+        Size = UDim2.new(0.55, 0, 0, 0), -- Will be resized when opened
         Position = UDim2.new(0.43, 0, 1, 5),
         BackgroundColor3 = theme.surface,
         BackgroundTransparency = 0,
@@ -1223,6 +1268,7 @@ function AdonisEngine:Menu(text, section, options, callback)
         Transparency = 0.7
     })
 
+    -- List layout for dropdown options
     local listLayout = create("UIListLayout", {
         Parent = dropdownMenu,
         Padding = UDim.new(0, 2),
@@ -1230,6 +1276,7 @@ function AdonisEngine:Menu(text, section, options, callback)
         HorizontalAlignment = Enum.HorizontalAlignment.Center
     })
 
+    -- Add options to dropdown
     local selectedOption = options[1]
     local isOpen = false
 
@@ -1274,6 +1321,7 @@ function AdonisEngine:Menu(text, section, options, callback)
             selectedOption = optionText
             dropdownButton.Text = optionText
 
+            -- Close dropdown
             isOpen = false
             createTween(dropdownMenu, {
                 Size = UDim2.new(0.55, 0, 0, 0),
@@ -1284,6 +1332,7 @@ function AdonisEngine:Menu(text, section, options, callback)
                 dropdownMenu.Visible = false
             end)
 
+            -- Update arrow
             createTween(arrow, {
                 Rotation = 0
             }, 0.2):Play()
@@ -1294,12 +1343,14 @@ function AdonisEngine:Menu(text, section, options, callback)
         return option
     end
 
+    -- Populate options
     for i, optionText in ipairs(options) do
         createOption(optionText, i)
     end
 
     updateDropdownSize()
 
+    -- Toggle dropdown
     dropdownButton.MouseButton1Click:Connect(function()
         createRippleEffect(dropdownButton, Color3.fromRGB(255, 255, 255))
 
@@ -1315,6 +1366,7 @@ function AdonisEngine:Menu(text, section, options, callback)
                 BackgroundTransparency = 0
             }, 0.2):Play()
 
+            -- Rotate arrow
             createTween(arrow, {
                 Rotation = 180
             }, 0.2):Play()
@@ -1328,18 +1380,21 @@ function AdonisEngine:Menu(text, section, options, callback)
                 dropdownMenu.Visible = false
             end)
 
+            -- Reset arrow
             createTween(arrow, {
                 Rotation = 0
             }, 0.2):Play()
         end
     end)
 
+    -- Close dropdown when clicking elsewhere
     UserInputService.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             local position = input.Position
             local dropdownAbsPos = dropdownButton.AbsolutePosition
             local dropdownAbsSize = dropdownButton.AbsoluteSize
 
+            -- Check if click is outside dropdown button and menu
             if isOpen and position.X < dropdownAbsPos.X or position.X > dropdownAbsPos.X + dropdownAbsSize.X or
                position.Y < dropdownAbsPos.Y or position.Y > dropdownAbsPos.Y + dropdownAbsSize.Y then
 
@@ -1359,6 +1414,7 @@ function AdonisEngine:Menu(text, section, options, callback)
                         dropdownMenu.Visible = false
                     end)
 
+                    -- Reset arrow
                     createTween(arrow, {
                         Rotation = 0
                     }, 0.2):Play()
@@ -1369,22 +1425,27 @@ function AdonisEngine:Menu(text, section, options, callback)
 
     table.insert(section.elements, menuContainer)
 
+    -- Create component object with methods
     local component = Component.new(menuContainer)
 
+    -- Add menu-specific methods
     function component:SetOptions(newOptions)
         if type(newOptions) == "table" and #newOptions > 0 then
             options = newOptions
 
+            -- Clear existing options
             for _, child in pairs(dropdownMenu:GetChildren()) do
                 if child:IsA("TextButton") then
                     child:Destroy()
                 end
             end
 
+            -- Add new options
             for i, optionText in ipairs(options) do
                 createOption(optionText, i)
             end
 
+            -- Update selected option if needed
             local found = false
             for _, opt in ipairs(options) do
                 if opt == selectedOption then
@@ -1418,6 +1479,7 @@ function AdonisEngine:Menu(text, section, options, callback)
         return false
     end
 
+    -- Store in components table
     local id = #self.components + 1
     self.components[id] = component
 
