@@ -16,8 +16,8 @@ local theme = {
 }
 
 -- Load external modules
-local Notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angelarenotfound/Adonis-Library/refs/head/modules/notify.lua"))()
-local Tools = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angelarenotfound/Adonis-Library/refs/head/modules/components.lua"))()
+local Notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angelarenotfound/Adonis-Library/refs/heads/main/modules/notify.lua"))()
+local Tools = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angelarenotfound/Adonis-Library/refs/heads/main/modules/components.lua"))()
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
